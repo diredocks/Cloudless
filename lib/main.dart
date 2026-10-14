@@ -9,6 +9,7 @@ import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
+import 'theme/weather_palette.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -130,6 +131,13 @@ class _CloudlessAppState extends State<CloudlessApp>
         useMaterial3: true,
         splashFactory: NoSplash.splashFactory,
         fontFamily: null,
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: PredictiveBackPageTransitionsBuilder(
+              fallbackColor: WeatherPalette.navy.background,
+            ),
+          },
+        ),
       ),
       home: api == null
           ? SettingsScreen(
