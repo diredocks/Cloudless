@@ -12,9 +12,10 @@
   "settingsHintSnack": "长按打开设置",
 
   "settingsTitle": "设置",
-  "firstRunPrompt": "设置有效的 API 密钥以继续",
+  "firstRunTitle": "完成首次设置",
+  "firstRunPrompt": "输入你的 API 密钥并选择语言",
   "apiKeyLabel": "API 密钥",
-  "apiKeyHint": "粘贴你的令牌",
+  "apiKeyHint": "粘贴你的 API 密钥",
   "save": "保存",
   "errorEnterApiKey": "请输入 API 密钥",
 

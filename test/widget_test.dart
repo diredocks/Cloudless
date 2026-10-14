@@ -108,7 +108,11 @@ void main() {
     await tester.pumpWidget(app(apiKey: null));
     await tester.pumpAndSettle();
 
-    expect(find.text('set a valid API key to continue'), findsOneWidget);
+    expect(find.text('finish setting up'), findsOneWidget);
+    expect(
+      find.text('enter your API key and choose a language'),
+      findsOneWidget,
+    );
     expect(find.text('malaga, spain'), findsNothing);
   });
 

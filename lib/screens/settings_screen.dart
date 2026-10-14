@@ -130,12 +130,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        l10n.firstRunPrompt,
+                        l10n.firstRunTitle,
                         style: TextStyle(
                           color: palette.foreground,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w900,
                           height: 1.1,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.firstRunPrompt,
+                        style: TextStyle(
+                          color: palette.foreground.withValues(alpha: 0.8),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
                         ),
                       ),
                       const SizedBox(height: 40),

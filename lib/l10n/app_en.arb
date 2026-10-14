@@ -12,9 +12,10 @@
   "settingsHintSnack": "long press to open settings",
 
   "settingsTitle": "settings",
-  "firstRunPrompt": "set a valid API key to continue",
+  "firstRunTitle": "finish setting up",
+  "firstRunPrompt": "enter your API key and choose a language",
   "apiKeyLabel": "API key",
-  "apiKeyHint": "paste your token",
+  "apiKeyHint": "paste your API key",
   "save": "save",
   "errorEnterApiKey": "enter an API key",
 
