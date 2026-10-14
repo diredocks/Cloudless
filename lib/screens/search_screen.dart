@@ -83,12 +83,13 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  for (final city in results)
+                  for (var i = 0; i < results.length; i++)
                     _CityRow(
-                      city: city,
+                      city: results[i],
                       palette: palette,
-                      selected: city.name == widget.selectedCity,
-                      onTap: () => widget.onSelected(city),
+                      selected: results[i].name == widget.selectedCity,
+                      showTopBorder: i != 0,
+                      onTap: () => widget.onSelected(results[i]),
                     ),
                   const SizedBox(height: 8),
                 ],
@@ -106,12 +107,14 @@ class _CityRow extends StatelessWidget {
     required this.city,
     required this.palette,
     required this.selected,
+    required this.showTopBorder,
     required this.onTap,
   });
 
   final City city;
   final WeatherPalette palette;
   final bool selected;
+  final bool showTopBorder;
   final VoidCallback onTap;
 
   @override
@@ -122,7 +125,10 @@ class _CityRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: palette.hairline, width: 1),
+            top: BorderSide(
+              color: showTopBorder ? palette.hairline : Colors.transparent,
+              width: 1,
+            ),
           ),
         ),
         child: Row(
