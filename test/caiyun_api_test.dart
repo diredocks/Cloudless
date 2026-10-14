@@ -37,7 +37,7 @@ void main() {
       expect(current.uvDesc, 'Moderate');
       expect(current.rainProbability, 10);
       expect(current.rainIntensity, 0.0);
-      expect(current.palette, WeatherPalette.orange);
+      expect(current.palette, WeatherPalette.sunny);
     });
 
     test('maps the daily block into the weekly forecast', () {
@@ -176,9 +176,16 @@ void main() {
 
   group('skyconFor', () {
     test('handles known and unknown codes', () {
-      expect(skyconFor('CLOUDY').palette, WeatherPalette.blue);
-      expect(skyconFor('CLEAR_NIGHT').palette, WeatherPalette.navy);
+      expect(skyconFor('CLOUDY').palette, WeatherPalette.cloudy);
+      expect(skyconFor('CLEAR_NIGHT').palette, WeatherPalette.clearNight);
       expect(skyconFor('WHATEVER').palette, WeatherPalette.sky);
+    });
+
+    test('gives every condition its own palette', () {
+      final codes = skyconCatalog.map((s) => s.code).toList();
+      final palettes = skyconCatalog.map((s) => s.palette).toSet();
+      expect(codes.toSet(), hasLength(codes.length));
+      expect(palettes, hasLength(codes.length));
     });
   });
 }
