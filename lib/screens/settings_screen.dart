@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import '../data/caiyun_api.dart';
 import '../data/cities.dart';
 import '../data/settings_store.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/weather_l10n.dart';
 import '../theme/weather_palette.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -12,12 +14,20 @@ class SettingsScreen extends StatefulWidget {
     required this.store,
     required this.onSaved,
     this.client,
+    this.languageCode,
     this.isFirstRun = false,
   });
 
   final SettingsStore store;
-  final ValueChanged<String> onSaved;
+
+  /// Called after the settings have been persisted with the new API key and
+  /// language override (`null` follows the system).
+  final void Function(String apiKey, String? languageCode) onSaved;
+
   final http.Client? client;
+
+  /// Current language override (`en`, `zh`) or null to follow the system.
+  final String? languageCode;
 
   /// When true the screen is shown as the app root (no saved key yet) and
   /// cannot be dismissed.
@@ -29,6 +39,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _controller;
+  late String? _languageCode;
   bool _obscure = true;
   bool _saving = false;
   String? _error;
@@ -37,6 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.store.apiKey ?? '');
+    _languageCode = widget.languageCode;
   }
 
   @override
@@ -45,10 +57,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
+  void _selectLanguage(String? code) =>
+      setState(() => _languageCode = code);
+
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
     final key = _controller.text.trim();
     if (key.isEmpty) {
-      setState(() => _error = 'enter an API key');
+      setState(() => _error = l10n.errorEnterApiKey);
       return;
     }
 
@@ -64,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = error.message;
+        _error = l10n.weatherError(error);
       });
       return;
     } finally {
@@ -72,8 +88,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     await widget.store.setApiKey(key);
+    await widget.store.setLanguageCode(_languageCode);
     if (!mounted) return;
-    widget.onSaved(key);
+    widget.onSaved(key, _languageCode);
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
@@ -81,6 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     const palette = WeatherPalette.navy;
 
     return Scaffold(
@@ -91,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               backgroundColor: palette.background,
               foregroundColor: palette.foreground,
               elevation: 0,
-              title: const Text('settings'),
+              title: Text(l10n.settingsTitle),
             ),
       body: SafeArea(
         child: Column(
@@ -112,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'set a valid API key to continue',
+                        l10n.firstRunPrompt,
                         style: TextStyle(
                           color: palette.foreground,
                           fontSize: 24,
@@ -123,7 +141,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 40),
                     ],
                     Text(
-                      'API key',
+                      l10n.apiKeyLabel,
                       style: TextStyle(
                         color: palette.foreground,
                         fontSize: 17,
@@ -143,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'paste your token',
+                        hintText: l10n.apiKeyHint,
                         hintStyle: TextStyle(
                           color: palette.foreground.withValues(alpha: 0.5),
                           fontSize: 20,
@@ -180,6 +198,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ],
+                    const SizedBox(height: 32),
+                    Text(
+                      l10n.languageLabel,
+                      style: TextStyle(
+                        color: palette.foreground,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    _LanguageDropdown(
+                      value: _languageCode,
+                      palette: palette,
+                      onChanged: _selectLanguage,
+                    ),
                   ],
                 ),
               ),
@@ -207,9 +240,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: palette.background,
                           ),
                         )
-                      : const Text(
-                          'save',
-                          style: TextStyle(
+                      : Text(
+                          l10n.save,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
                           ),
@@ -218,6 +251,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageDropdown extends StatelessWidget {
+  const _LanguageDropdown({
+    required this.value,
+    required this.palette,
+    required this.onChanged,
+  });
+
+  static const String _system = 'system';
+
+  final String? value;
+  final WeatherPalette palette;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: palette.hairline, width: 1),
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value ?? _system,
+          isExpanded: true,
+          dropdownColor: palette.background,
+          iconEnabledColor: palette.foreground,
+          borderRadius: BorderRadius.circular(4),
+          style: TextStyle(
+            color: palette.foreground,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: _system,
+              child: Text(l10n.languageSystem),
+            ),
+            DropdownMenuItem(
+              value: 'en',
+              child: Text(l10n.languageEnglish),
+            ),
+            DropdownMenuItem(
+              value: 'zh',
+              child: Text(l10n.languageChineseSimplified),
+            ),
+          ],
+          onChanged: (selection) =>
+              onChanged(selection == _system ? null : selection),
         ),
       ),
     );

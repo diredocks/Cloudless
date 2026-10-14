@@ -33,6 +33,9 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Generated localization output (run `flutter gen-l10n` to regenerate)
+/lib/l10n/app_localizations*.dart
+
 # Symbolication related
 app.*.symbols
 

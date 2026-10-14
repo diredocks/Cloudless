@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'data/caiyun_api.dart';
 import 'data/settings_store.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
 
@@ -29,14 +30,31 @@ class CloudlessApp extends StatefulWidget {
 class _CloudlessAppState extends State<CloudlessApp> {
   final _navigatorKey = GlobalKey<NavigatorState>();
   String? _apiKey;
+  String? _languageCode;
 
   @override
   void initState() {
     super.initState();
     _apiKey = widget.store.apiKey;
+    _languageCode = widget.store.languageCode;
   }
 
-  void _handleSaved(String key) => setState(() => _apiKey = key);
+  void _handleSaved(String key, String? languageCode) {
+    setState(() {
+      _apiKey = key;
+      _languageCode = languageCode;
+    });
+  }
+
+  /// Locale used for API-bound `lang` and widget keys: the explicit choice, or
+  /// the system language when following it.
+  String get _effectiveLanguageCode =>
+      _languageCode ??
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+
+  /// Caiyun `lang` parameter for the current locale.
+  String get _caiyunLanguage =>
+      _effectiveLanguageCode == 'zh' ? 'zh_CN' : 'en_US';
 
   Future<void> _openSettings() {
     return _navigatorKey.currentState!.push(
@@ -44,6 +62,7 @@ class _CloudlessAppState extends State<CloudlessApp> {
         builder: (_) => SettingsScreen(
           store: widget.store,
           client: widget.client,
+          languageCode: _languageCode,
           onSaved: _handleSaved,
         ),
       ),
@@ -55,9 +74,12 @@ class _CloudlessAppState extends State<CloudlessApp> {
     final apiKey = _apiKey;
 
     return MaterialApp(
-      title: 'cloudless',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: _languageCode == null ? null : Locale(_languageCode!),
       theme: ThemeData(
         useMaterial3: true,
         splashFactory: NoSplash.splashFactory,
@@ -68,11 +90,16 @@ class _CloudlessAppState extends State<CloudlessApp> {
               store: widget.store,
               client: widget.client,
               isFirstRun: true,
+              languageCode: _languageCode,
               onSaved: _handleSaved,
             )
           : HomeShell(
-              key: ValueKey(apiKey),
-              api: CaiyunApi(token: apiKey, client: widget.client),
+              key: ValueKey('$apiKey-$_effectiveLanguageCode'),
+              api: CaiyunApi(
+                token: apiKey,
+                language: _caiyunLanguage,
+                client: widget.client,
+              ),
               onOpenSettings: _openSettings,
             ),
     );

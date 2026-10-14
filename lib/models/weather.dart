@@ -2,61 +2,75 @@ import '../theme/weather_palette.dart';
 
 class CurrentWeather {
   const CurrentWeather({
-    required this.location,
+    required this.city,
     required this.temperature,
-    required this.summary,
-    required this.feelsLikeValue,
-    required this.feelsLikeLabel,
-    required this.windValue,
-    required this.windLabel,
-    required this.uvValue,
-    required this.uvLabel,
-    required this.rainValue,
-    required this.rainLabel,
+    required this.skycon,
+    required this.apiSummary,
+    required this.feelsLike,
+    required this.comfortDesc,
+    required this.windSpeed,
+    required this.uvIndex,
+    required this.uvDesc,
+    required this.rainProbability,
+    required this.rainIntensity,
     required this.palette,
   });
 
-  final String location;
+  final CityLocation city;
   final int temperature;
-  final String summary;
 
-  final String feelsLikeValue;
-  final String feelsLikeLabel;
+  /// Caiyun sky condition code, e.g. `CLEAR_DAY`.
+  final String skycon;
 
-  final String windValue;
-  final String windLabel;
+  /// Natural-language keypoint returned by Caiyun, already localized by the
+  /// requested `lang`. May be null or empty.
+  final String? apiSummary;
 
-  final String uvValue;
-  final String uvLabel;
+  final int feelsLike;
 
-  final String rainValue;
-  final String rainLabel;
+  /// Comfort description returned by Caiyun's life index, already localized.
+  final String? comfortDesc;
+
+  final num windSpeed;
+
+  final int uvIndex;
+
+  /// Ultraviolet description returned by Caiyun's life index.
+  final String? uvDesc;
+
+  final int rainProbability;
+  final double rainIntensity;
 
   final WeatherPalette palette;
 }
 
 class DailyForecast {
   const DailyForecast({
-    required this.day,
-    required this.condition,
+    required this.date,
+    required this.skycon,
     required this.temperature,
   });
 
-  final String day;
-  final String condition;
+  /// ISO-8601 date (or date-time) as returned by Caiyun.
+  final String date;
+
+  final String skycon;
   final int temperature;
 }
 
 class WeeklyWeather {
   const WeeklyWeather({
-    required this.location,
-    required this.summary,
+    required this.city,
+    required this.dominantSkycon,
     required this.days,
     required this.palette,
   });
 
-  final String location;
-  final String summary;
+  final CityLocation city;
+
+  /// Most frequent sky condition across the forecast window.
+  final String dominantSkycon;
+
   final List<DailyForecast> days;
   final WeatherPalette palette;
 }
@@ -70,7 +84,10 @@ class CityLocation {
   });
 
   final String id;
+
+  /// Default (English) display name; localized names live in the l10n layer.
   final String name;
+
   final double longitude;
   final double latitude;
 }

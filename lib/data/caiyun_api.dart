@@ -5,47 +5,75 @@ import 'package:http/http.dart' as http;
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 
+/// Categories of failure the UI can translate on its own. The [detail] carries
+/// any service-provided text (already localized by the requested `lang`).
+enum WeatherErrorKind {
+  unreachable,
+  badStatus,
+  invalidData,
+  serviceError,
+  noData,
+}
+
 /// Raised when the Caiyun weather service cannot be reached or answers with an
 /// error.
 class WeatherApiException implements Exception {
-  const WeatherApiException(this.message);
+  const WeatherApiException(
+    this.kind, {
+    this.detail,
+    this.statusCode,
+  });
 
-  final String message;
+  final WeatherErrorKind kind;
+
+  /// Service-provided error text, when available.
+  final String? detail;
+
+  /// HTTP status code, set for [WeatherErrorKind.badStatus].
+  final int? statusCode;
 
   @override
-  String toString() => message;
+  String toString() => detail ?? kind.name;
 }
 
 /// Thin client for the Caiyun v2.6 comprehensive weather endpoint.
 ///
 /// Docs: https://docs.caiyunapp.com/weather-api/v2/v2.6/6-weather.html
 class CaiyunApi {
-  CaiyunApi({required this.token, http.Client? client})
-      : _client = client ?? http.Client(),
+  CaiyunApi({
+    required this.token,
+    this.language = 'en_US',
+    http.Client? client,
+  })  : _client = client ?? http.Client(),
         _ownsClient = client == null;
 
   static const String _baseUrl = 'https://api.caiyunapp.com/v2.6';
 
   final String token;
+
+  /// Caiyun `lang` value, e.g. `en_US` or `zh_CN`.
+  final String language;
+
   final http.Client _client;
   final bool _ownsClient;
 
   Future<WeatherBundle> fetch(CityLocation city) async {
     final uri = Uri.parse(
       '$_baseUrl/$token/${city.longitude},${city.latitude}/weather'
-      '?lang=en_US&dailysteps=7&hourlysteps=24',
+      '?lang=$language&dailysteps=7&hourlysteps=24',
     );
 
     final http.Response response;
     try {
       response = await _client.get(uri);
     } on Exception {
-      throw const WeatherApiException('could not reach the weather service');
+      throw const WeatherApiException(WeatherErrorKind.unreachable);
     }
 
     if (response.statusCode != 200) {
       throw WeatherApiException(
-        'the weather service returned ${response.statusCode}',
+        WeatherErrorKind.badStatus,
+        statusCode: response.statusCode,
       );
     }
 
@@ -53,21 +81,20 @@ class CaiyunApi {
     try {
       decoded = jsonDecode(response.body);
     } on FormatException {
-      throw const WeatherApiException(
-        'the weather service returned invalid data',
-      );
+      throw const WeatherApiException(WeatherErrorKind.invalidData);
     }
 
     if (decoded is! Map<String, dynamic> || decoded['status'] != 'ok') {
       final error = decoded is Map ? decoded['error'] : null;
       throw WeatherApiException(
-        error?.toString() ?? 'the weather service returned an error',
+        WeatherErrorKind.serviceError,
+        detail: error?.toString(),
       );
     }
 
     final result = decoded['result'];
     if (result is! Map<String, dynamic>) {
-      throw const WeatherApiException('the weather service returned no data');
+      throw const WeatherApiException(WeatherErrorKind.noData);
     }
 
     return CaiyunMapper.toBundle(city, result);
@@ -123,19 +150,17 @@ class CaiyunMapper {
     final keypoint = (result['forecast_keypoint'] as String?)?.trim();
 
     return CurrentWeather(
-      location: city.name,
+      city: city,
       temperature: temperature,
-      summary: (keypoint == null || keypoint.isEmpty)
-          ? skyconText(skycon)
-          : keypoint,
-      feelsLikeValue: '$apparent\u00B0',
-      feelsLikeLabel: _label(comfort['desc'], fallback: 'mild'),
-      windValue: '$windSpeed km/h',
-      windLabel: windLabel(windSpeed),
-      uvValue: '${_round(uv['index'])}',
-      uvLabel: _label(uv['desc'], fallback: 'low'),
-      rainValue: '$probability%',
-      rainLabel: _rainLabel(intensity, probability),
+      skycon: skycon,
+      apiSummary: (keypoint == null || keypoint.isEmpty) ? null : keypoint,
+      feelsLike: apparent,
+      comfortDesc: _text(comfort['desc']),
+      windSpeed: windSpeed,
+      uvIndex: _round(uv['index']),
+      uvDesc: _text(uv['desc']),
+      rainProbability: probability,
+      rainIntensity: intensity,
       palette: paletteFor(skycon),
     );
   }
@@ -155,8 +180,8 @@ class CaiyunMapper {
         if (date == null) continue;
         days.add(
           DailyForecast(
-            day: weekdayName(date),
-            condition: skyconText(_skyconAt(skycons, i)),
+            date: date,
+            skycon: _skyconAt(skycons, i),
             temperature: _round(entry['max']),
           ),
         );
@@ -165,8 +190,8 @@ class CaiyunMapper {
 
     final dominant = _dominantSkycon(skycons);
     return WeeklyWeather(
-      location: city.name,
-      summary: 'mostly ${skyconText(dominant)} for the next 7 days',
+      city: city,
+      dominantSkycon: dominant,
       days: days,
       palette: paletteFor(dominant),
     );
@@ -194,13 +219,6 @@ class CaiyunMapper {
     return 0;
   }
 
-  static String _rainLabel(double intensity, int probability) {
-    if (intensity > 0) return 'raining';
-    if (probability >= 60) return 'likely';
-    if (probability >= 30) return 'possible';
-    return 'dry';
-  }
-
   static String _dominantSkycon(Object? skyconList) {
     if (skyconList is! List || skyconList.isEmpty) return 'CLEAR_DAY';
 
@@ -226,77 +244,6 @@ class CaiyunMapper {
       if (value is String) return value;
     }
     return 'CLEAR_DAY';
-  }
-
-  static const _weekdays = [
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-    'sunday',
-  ];
-
-  /// Weekday name from an ISO-8601 date string such as `2026-10-14T00:00+02:00`.
-  static String weekdayName(String isoDate) {
-    final datePart = isoDate.length >= 10 ? isoDate.substring(0, 10) : isoDate;
-    final date = DateTime.tryParse(datePart);
-    if (date == null) return '';
-    return _weekdays[date.weekday - 1];
-  }
-
-  static String windLabel(num speedKmh) {
-    if (speedKmh < 6) return 'calm';
-    if (speedKmh < 20) return 'breezy';
-    if (speedKmh < 39) return 'windy';
-    return 'strong';
-  }
-
-  static String skyconText(String skycon) {
-    switch (skycon) {
-      case 'CLEAR_DAY':
-        return 'sunny';
-      case 'CLEAR_NIGHT':
-        return 'clear';
-      case 'PARTLY_CLOUDY_DAY':
-      case 'PARTLY_CLOUDY_NIGHT':
-        return 'partly cloudy';
-      case 'CLOUDY':
-        return 'cloudy';
-      case 'LIGHT_HAZE':
-        return 'light haze';
-      case 'MODERATE_HAZE':
-        return 'hazy';
-      case 'HEAVY_HAZE':
-        return 'heavy haze';
-      case 'FOG':
-        return 'foggy';
-      case 'DUST':
-        return 'dusty';
-      case 'SAND':
-        return 'sandy';
-      case 'WIND':
-        return 'windy';
-      case 'LIGHT_RAIN':
-        return 'light rain';
-      case 'MODERATE_RAIN':
-        return 'rain';
-      case 'HEAVY_RAIN':
-        return 'heavy rain';
-      case 'STORM_RAIN':
-        return 'storm';
-      case 'LIGHT_SNOW':
-        return 'light snow';
-      case 'MODERATE_SNOW':
-        return 'snow';
-      case 'HEAVY_SNOW':
-        return 'heavy snow';
-      case 'STORM_SNOW':
-        return 'blizzard';
-      default:
-        return 'clear';
-    }
   }
 
   static WeatherPalette paletteFor(String skycon) {
@@ -340,10 +287,8 @@ class CaiyunMapper {
   static double _double(Object? value, {double fallback = 0}) =>
       value is num ? value.toDouble() : fallback;
 
-  static String _label(Object? value, {required String fallback}) {
-    if (value is String && value.trim().isNotEmpty) {
-      return value.toLowerCase();
-    }
-    return fallback;
+  static String? _text(Object? value) {
+    if (value is String && value.trim().isNotEmpty) return value.trim();
+    return null;
   }
 }

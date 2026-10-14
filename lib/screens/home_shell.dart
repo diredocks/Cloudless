@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../data/caiyun_api.dart';
 import '../data/cities.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/weather_bottom_nav.dart';
@@ -62,20 +64,24 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: FutureBuilder<Map<String, WeatherBundle>>(
         future: _bundles,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            final error = snapshot.error;
             return _StatusScreen(
-              message: '${snapshot.error}',
+              message: error is WeatherApiException
+                  ? l10n.weatherError(error)
+                  : '$error',
               onRetry: _reload,
               onOpenSettings: widget.onOpenSettings,
             );
           }
           if (!snapshot.hasData) {
             return _StatusScreen(
-              message: 'loading weather\u2026',
+              message: l10n.loadingWeather,
               onOpenSettings: widget.onOpenSettings,
             );
           }
@@ -153,15 +159,16 @@ class _SettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return InkResponse(
       radius: 28,
       onTap: () {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              content: Text('long press to open settings'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(l10n.settingsHintSnack),
+              duration: const Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -192,6 +199,7 @@ class _StatusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     const palette = WeatherPalette.sky;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 350),
@@ -223,7 +231,7 @@ class _StatusScreen extends StatelessWidget {
                     TextButton(
                       onPressed: onRetry,
                       child: Text(
-                        'try again',
+                        l10n.tryAgain,
                         style: TextStyle(
                           color: palette.foreground,
                           fontSize: 16,

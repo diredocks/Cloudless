@@ -1,0 +1,98 @@
+import '../data/caiyun_api.dart';
+import '../models/weather.dart';
+import 'app_localizations.dart';
+
+/// Localized presentation helpers for the language-neutral weather models.
+extension WeatherLocalizations on AppLocalizations {
+  String cityName(CityLocation city) => switch (city.id) {
+        'malaga' => cityMalaga,
+        'dublin' => cityDublin,
+        'paris' => cityParis,
+        'reykjavik' => cityReykjavik,
+        'london' => cityLondon,
+        _ => city.name,
+      };
+
+  String skyconLabel(String skycon) => switch (skycon) {
+        'CLEAR_DAY' => skySunny,
+        'CLEAR_NIGHT' => skyClear,
+        'PARTLY_CLOUDY_DAY' => skyPartlyCloudy,
+        'PARTLY_CLOUDY_NIGHT' => skyPartlyCloudy,
+        'CLOUDY' => skyCloudy,
+        'LIGHT_HAZE' => skyLightHaze,
+        'MODERATE_HAZE' => skyHazy,
+        'HEAVY_HAZE' => skyHeavyHaze,
+        'FOG' => skyFoggy,
+        'DUST' => skyDusty,
+        'SAND' => skySandy,
+        'WIND' => skyWindy,
+        'LIGHT_RAIN' => skyLightRain,
+        'MODERATE_RAIN' => skyRain,
+        'HEAVY_RAIN' => skyHeavyRain,
+        'STORM_RAIN' => skyStorm,
+        'LIGHT_SNOW' => skyLightSnow,
+        'MODERATE_SNOW' => skySnow,
+        'HEAVY_SNOW' => skyHeavySnow,
+        'STORM_SNOW' => skyBlizzard,
+        _ => skyClear,
+      };
+
+  /// Keypoint text from the API when present, otherwise the sky condition.
+  String currentSummary(CurrentWeather weather) {
+    final keypoint = weather.apiSummary?.trim();
+    if (keypoint != null && keypoint.isNotEmpty) return keypoint;
+    return skyconLabel(weather.skycon);
+  }
+
+  String windLabel(num speedKmh) {
+    if (speedKmh < 6) return windCalm;
+    if (speedKmh < 20) return windBreezy;
+    if (speedKmh < 39) return windWindy;
+    return windStrong;
+  }
+
+  String rainLabel(double intensity, int probability) {
+    if (intensity > 0) return rainRaining;
+    if (probability >= 60) return rainLikely;
+    if (probability >= 30) return rainPossible;
+    return rainDry;
+  }
+
+  String comfortLabel(String? desc) => _apiText(desc) ?? comfortMild;
+
+  String uvLabel(String? desc) => _apiText(desc) ?? uvLow;
+
+  /// Weekday name from an ISO-8601 date string such as `2026-10-14T00:00+02:00`.
+  String weekdayName(String isoDate) {
+    final datePart = isoDate.length >= 10 ? isoDate.substring(0, 10) : isoDate;
+    final date = DateTime.tryParse(datePart);
+    if (date == null) return '';
+    return <String>[
+      weekdayMonday,
+      weekdayTuesday,
+      weekdayWednesday,
+      weekdayThursday,
+      weekdayFriday,
+      weekdaySaturday,
+      weekdaySunday,
+    ][date.weekday - 1];
+  }
+
+  String weeklyForecastSummary(String dominantSkycon) =>
+      weeklySummary(skyconLabel(dominantSkycon));
+
+  String weatherError(WeatherApiException error) => switch (error.kind) {
+        WeatherErrorKind.unreachable => errorUnreachable,
+        WeatherErrorKind.badStatus =>
+          errorBadStatus(error.statusCode ?? 0),
+        WeatherErrorKind.invalidData => errorInvalidData,
+        WeatherErrorKind.noData => errorNoData,
+        WeatherErrorKind.serviceError => error.detail ?? errorService,
+      };
+
+  String? _apiText(String? value) {
+    final text = value?.trim();
+    if (text == null || text.isEmpty) return null;
+    return text.toLowerCase();
+  }
+}

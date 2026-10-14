@@ -1,0 +1,101 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "cloudless",
+
+  "navToday": "today",
+  "navSearch": "search",
+  "navWeekly": "weekly",
+
+  "loadingWeather": "loading weather…",
+  "tryAgain": "try again",
+  "settingsHintSnack": "long press to open settings",
+
+  "settingsTitle": "settings",
+  "firstRunPrompt": "set a valid API key to continue",
+  "apiKeyLabel": "API key",
+  "apiKeyHint": "paste your token",
+  "save": "save",
+  "errorEnterApiKey": "enter an API key",
+
+  "searchCityHint": "search a city",
+
+  "metricFeelsLike": "feels like",
+  "metricWind": "wind",
+  "metricUv": "uv index",
+  "metricRain": "rain",
+
+  "languageLabel": "language",
+  "languageSystem": "system",
+  "languageEnglish": "English",
+  "languageChineseSimplified": "简体中文",
+
+  "windCalm": "calm",
+  "windBreezy": "breezy",
+  "windWindy": "windy",
+  "windStrong": "strong",
+
+  "rainRaining": "raining",
+  "rainLikely": "likely",
+  "rainPossible": "possible",
+  "rainDry": "dry",
+
+  "comfortMild": "mild",
+  "uvLow": "low",
+
+  "skySunny": "sunny",
+  "skyClear": "clear",
+  "skyPartlyCloudy": "partly cloudy",
+  "skyCloudy": "cloudy",
+  "skyLightHaze": "light haze",
+  "skyHazy": "hazy",
+  "skyHeavyHaze": "heavy haze",
+  "skyFoggy": "foggy",
+  "skyDusty": "dusty",
+  "skySandy": "sandy",
+  "skyWindy": "windy",
+  "skyLightRain": "light rain",
+  "skyRain": "rain",
+  "skyHeavyRain": "heavy rain",
+  "skyStorm": "storm",
+  "skyLightSnow": "light snow",
+  "skySnow": "snow",
+  "skyHeavySnow": "heavy snow",
+  "skyBlizzard": "blizzard",
+
+  "weekdayMonday": "monday",
+  "weekdayTuesday": "tuesday",
+  "weekdayWednesday": "wednesday",
+  "weekdayThursday": "thursday",
+  "weekdayFriday": "friday",
+  "weekdaySaturday": "saturday",
+  "weekdaySunday": "sunday",
+
+  "weeklySummary": "mostly {condition} for the next 7 days",
+  "@weeklySummary": {
+    "placeholders": {
+      "condition": {
+        "type": "String"
+      }
+    }
+  },
+
+  "cityMalaga": "malaga, spain",
+  "cityDublin": "dublin, ireland",
+  "cityParis": "paris, france",
+  "cityReykjavik": "reykjavik, iceland",
+  "cityLondon": "london, uk",
+
+  "errorUnreachable": "could not reach the weather service",
+  "errorBadStatus": "the weather service returned {status}",
+  "@errorBadStatus": {
+    "placeholders": {
+      "status": {
+        "type": "int"
+      }
+    }
+  },
+  "errorInvalidData": "the weather service returned invalid data",
+  "errorService": "the weather service returned an error",
+  "errorNoData": "the weather service returned no data"
+}

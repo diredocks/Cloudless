@@ -1,0 +1,87 @@
+{
+  "@@locale": "zh",
+
+  "appTitle": "无云天气",
+
+  "navToday": "今天",
+  "navSearch": "搜索",
+  "navWeekly": "一周",
+
+  "loadingWeather": "正在加载天气…",
+  "tryAgain": "重试",
+  "settingsHintSnack": "长按打开设置",
+
+  "settingsTitle": "设置",
+  "firstRunPrompt": "设置有效的 API 密钥以继续",
+  "apiKeyLabel": "API 密钥",
+  "apiKeyHint": "粘贴你的令牌",
+  "save": "保存",
+  "errorEnterApiKey": "请输入 API 密钥",
+
+  "searchCityHint": "搜索城市",
+
+  "metricFeelsLike": "体感温度",
+  "metricWind": "风速",
+  "metricUv": "紫外线",
+  "metricRain": "降雨",
+
+  "languageLabel": "语言",
+  "languageSystem": "跟随系统",
+  "languageEnglish": "English",
+  "languageChineseSimplified": "简体中文",
+
+  "windCalm": "无风",
+  "windBreezy": "微风",
+  "windWindy": "有风",
+  "windStrong": "强风",
+
+  "rainRaining": "降雨中",
+  "rainLikely": "很可能降雨",
+  "rainPossible": "可能降雨",
+  "rainDry": "无雨",
+
+  "comfortMild": "温和",
+  "uvLow": "低",
+
+  "skySunny": "晴",
+  "skyClear": "晴",
+  "skyPartlyCloudy": "多云",
+  "skyCloudy": "阴",
+  "skyLightHaze": "轻度霾",
+  "skyHazy": "霾",
+  "skyHeavyHaze": "重度霾",
+  "skyFoggy": "雾",
+  "skyDusty": "浮尘",
+  "skySandy": "沙尘",
+  "skyWindy": "大风",
+  "skyLightRain": "小雨",
+  "skyRain": "中雨",
+  "skyHeavyRain": "大雨",
+  "skyStorm": "暴雨",
+  "skyLightSnow": "小雪",
+  "skySnow": "中雪",
+  "skyHeavySnow": "大雪",
+  "skyBlizzard": "暴雪",
+
+  "weekdayMonday": "周一",
+  "weekdayTuesday": "周二",
+  "weekdayWednesday": "周三",
+  "weekdayThursday": "周四",
+  "weekdayFriday": "周五",
+  "weekdaySaturday": "周六",
+  "weekdaySunday": "周日",
+
+  "weeklySummary": "未来 7 天以{condition}为主",
+
+  "cityMalaga": "马拉加，西班牙",
+  "cityDublin": "都柏林，爱尔兰",
+  "cityParis": "巴黎，法国",
+  "cityReykjavik": "雷克雅未克，冰岛",
+  "cityLondon": "伦敦，英国",
+
+  "errorUnreachable": "无法连接到天气服务",
+  "errorBadStatus": "天气服务返回错误 {status}",
+  "errorInvalidData": "天气服务返回了无效数据",
+  "errorService": "天气服务返回错误",
+  "errorNoData": "天气服务未返回数据"
+}

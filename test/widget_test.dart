@@ -10,15 +10,22 @@ import 'package:http/testing.dart';
 import 'fixtures.dart';
 
 class _MemorySettingsStore implements SettingsStore {
-  _MemorySettingsStore([this._apiKey]);
+  _MemorySettingsStore([this._apiKey, this._languageCode]);
 
   String? _apiKey;
+  String? _languageCode;
 
   @override
   String? get apiKey => _apiKey;
 
   @override
   Future<void> setApiKey(String value) async => _apiKey = value;
+
+  @override
+  String? get languageCode => _languageCode;
+
+  @override
+  Future<void> setLanguageCode(String? value) async => _languageCode = value;
 }
 
 void main() {
@@ -31,8 +38,11 @@ void main() {
         client: client ?? okClient(),
       );
 
-  Widget app({String? apiKey, http.Client? client}) =>
-      appWith(_MemorySettingsStore(apiKey), client: client);
+  Widget app({String? apiKey, String? languageCode, http.Client? client}) =>
+      appWith(
+        _MemorySettingsStore(apiKey, languageCode),
+        client: client,
+      );
 
   testWidgets('renders the current weather fetched from the API',
       (WidgetTester tester) async {
@@ -147,5 +157,46 @@ void main() {
 
     expect(store.apiKey, 'new-key');
     expect(find.text('malaga, spain'), findsOneWidget);
+  });
+
+  testWidgets('renders Simplified Chinese when selected',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(app(apiKey: 'test-key', languageCode: 'zh'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('马拉加，西班牙'), findsOneWidget);
+    expect(find.text('今天'), findsOneWidget);
+    expect(find.text('体感温度'), findsOneWidget);
+
+    await tester.tap(find.text('一周'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('未来 7 天以晴为主'), findsOneWidget);
+    expect(find.text('周三'), findsOneWidget);
+  });
+
+  testWidgets('changing the language is only persisted when saved',
+      (WidgetTester tester) async {
+    final store = _MemorySettingsStore('test-key');
+    await tester.pumpWidget(appWith(store));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(DropdownButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('简体中文').last);
+    await tester.pumpAndSettle();
+
+    // Selecting a language must not persist or apply it yet.
+    expect(store.languageCode, isNull);
+    expect(find.text('设置'), findsNothing);
+
+    await tester.tap(find.text('save'));
+    await tester.pumpAndSettle();
+
+    expect(store.languageCode, 'zh');
+    expect(find.text('今天'), findsOneWidget);
   });
 }

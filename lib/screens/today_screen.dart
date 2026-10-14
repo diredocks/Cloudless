@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../widgets/metric_row.dart';
 
@@ -10,6 +12,7 @@ class TodayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final palette = weather.palette;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -24,7 +27,7 @@ class TodayScreen extends StatelessWidget {
                   children: [
                     SizedBox(height: constraints.maxHeight * 0.14),
                     Text(
-                      weather.location,
+                      l10n.cityName(weather.city),
                       style: TextStyle(
                         color: palette.foreground,
                         fontSize: 26,
@@ -39,7 +42,7 @@ class TodayScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      weather.summary,
+                      l10n.currentSummary(weather),
                       style: TextStyle(
                         color: palette.foreground,
                         fontSize: 36,
@@ -50,27 +53,30 @@ class TodayScreen extends StatelessWidget {
                     ),
                     const Spacer(),
                     MetricRow(
-                      label: 'feels like',
-                      value: weather.feelsLikeValue,
-                      descriptor: weather.feelsLikeLabel,
+                      label: l10n.metricFeelsLike,
+                      value: '${weather.feelsLike}\u00B0',
+                      descriptor: l10n.comfortLabel(weather.comfortDesc),
                       palette: palette,
                     ),
                     MetricRow(
-                      label: 'wind',
-                      value: weather.windValue,
-                      descriptor: weather.windLabel,
+                      label: l10n.metricWind,
+                      value: '${weather.windSpeed} km/h',
+                      descriptor: l10n.windLabel(weather.windSpeed),
                       palette: palette,
                     ),
                     MetricRow(
-                      label: 'uv index',
-                      value: weather.uvValue,
-                      descriptor: weather.uvLabel,
+                      label: l10n.metricUv,
+                      value: '${weather.uvIndex}',
+                      descriptor: l10n.uvLabel(weather.uvDesc),
                       palette: palette,
                     ),
                     MetricRow(
-                      label: 'rain',
-                      value: weather.rainValue,
-                      descriptor: weather.rainLabel,
+                      label: l10n.metricRain,
+                      value: '${weather.rainProbability}%',
+                      descriptor: l10n.rainLabel(
+                        weather.rainIntensity,
+                        weather.rainProbability,
+                      ),
                       palette: palette,
                     ),
                     const SizedBox(height: 6),

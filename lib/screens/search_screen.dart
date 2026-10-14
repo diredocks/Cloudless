@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../data/cities.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 
@@ -34,9 +36,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final palette = widget.palette;
+    final query = _query.toLowerCase();
     final results = cityCatalog
-        .where((c) => c.name.toLowerCase().contains(_query.toLowerCase()))
+        .where((c) => l10n.cityName(c).toLowerCase().contains(query))
         .toList();
 
     return LayoutBuilder(
@@ -60,7 +64,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       fontWeight: FontWeight.w800,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'search a city',
+                      hintText: l10n.searchCityHint,
                       hintStyle: TextStyle(
                         color: palette.foreground.withValues(alpha: 0.6),
                         fontSize: 28,
@@ -126,6 +130,7 @@ class _CityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -143,7 +148,7 @@ class _CityRow extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                city.name,
+                l10n.cityName(city),
                 style: TextStyle(
                   color: palette.foreground,
                   fontSize: 26,

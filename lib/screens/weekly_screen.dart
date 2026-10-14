@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 
@@ -10,6 +12,7 @@ class WeeklyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final palette = weather.palette;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -23,7 +26,7 @@ class WeeklyScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: constraints.maxHeight * 0.12),
                   Text(
-                    weather.location,
+                    l10n.cityName(weather.city),
                     style: TextStyle(
                       color: palette.foreground,
                       fontSize: 26,
@@ -33,7 +36,7 @@ class WeeklyScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    weather.summary,
+                    l10n.weeklyForecastSummary(weather.dominantSkycon),
                     style: TextStyle(
                       color: palette.foreground,
                       fontSize: 44,
@@ -73,6 +76,7 @@ class _WeekRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
@@ -92,7 +96,7 @@ class _WeekRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  forecast.day,
+                  l10n.weekdayName(forecast.date),
                   style: TextStyle(
                     color: palette.foreground,
                     fontSize: 22,
@@ -101,7 +105,7 @@ class _WeekRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  forecast.condition,
+                  l10n.skyconLabel(forecast.skycon),
                   style: TextStyle(
                     color: palette.foreground,
                     fontSize: 30,
