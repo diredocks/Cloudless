@@ -19,12 +19,15 @@
 
     androidSdk =
       (pkgs.androidenv.composeAndroidPackages {
-        platformVersions = ["latest"];
-        buildToolsVersions = ["latest"];
+        # Pinned to the versions Flutter expects (see flutter_tools FlutterExtension.kt):
+        # compileSdk=36, build-tools=36.0.0, ndk=28.2.13676358
+        platformVersions = ["36"];
+        buildToolsVersions = ["36.0.0"];
         platformToolsVersion = "latest";
         cmdLineToolsVersion = "latest";
+        ndkVersions = ["28.2.13676358"];
         includeEmulator = false;
-        includeNDK = false;
+        includeNDK = true;
       }).androidsdk;
 
     sdkPath = "${androidSdk}/libexec/android-sdk";
