@@ -30,7 +30,21 @@ class WeatherBottomNav extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(top: 10, bottom: bottomInset > 0 ? 0 : 8),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: palette.hairline, width: 1)),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.05),
+            Colors.white.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.85],
+        ),
       ),
       child: SafeArea(
         top: false,
