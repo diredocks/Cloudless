@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'data/caiyun_api.dart';
 import 'data/settings_store.dart';
+import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
@@ -46,15 +47,19 @@ class _CloudlessAppState extends State<CloudlessApp> {
     });
   }
 
-  /// Locale used for API-bound `lang` and widget keys: the explicit choice, or
-  /// the system language when following it.
-  String get _effectiveLanguageCode =>
-      _languageCode ??
-      WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+  /// The explicitly selected language, or null when following the system.
+  AppLanguage? get _overrideLanguage => appLanguageForCode(_languageCode);
 
-  /// Caiyun `lang` parameter for the current locale.
-  String get _caiyunLanguage =>
-      _effectiveLanguageCode == 'zh' ? 'zh_CN' : 'en_US';
+  /// Language actually in effect: the override, or the best match for the
+  /// system locale.
+  AppLanguage get _language =>
+      _overrideLanguage ??
+      resolveAppLanguage(
+        WidgetsBinding.instance.platformDispatcher.locale,
+      );
+
+  /// Caiyun `lang` parameter for the active language.
+  String get _caiyunLanguage => _language.caiyunLang;
 
   Future<void> _openSettings() {
     return _navigatorKey.currentState!.push(
@@ -78,8 +83,10 @@ class _CloudlessAppState extends State<CloudlessApp> {
       navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: _languageCode == null ? null : Locale(_languageCode!),
+      supportedLocales: [
+        for (final language in kAppLanguages) language.locale,
+      ],
+      locale: _overrideLanguage?.locale,
       theme: ThemeData(
         useMaterial3: true,
         splashFactory: NoSplash.splashFactory,
@@ -94,7 +101,7 @@ class _CloudlessAppState extends State<CloudlessApp> {
               onSaved: _handleSaved,
             )
           : HomeShell(
-              key: ValueKey('$apiKey-$_effectiveLanguageCode'),
+              key: ValueKey('$apiKey-${_language.locale.toLanguageTag()}'),
               api: CaiyunApi(
                 token: apiKey,
                 language: _caiyunLanguage,

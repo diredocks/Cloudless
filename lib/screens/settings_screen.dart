@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../data/caiyun_api.dart';
 import '../data/cities.dart';
 import '../data/settings_store.dart';
+import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../theme/weather_palette.dart';
@@ -26,7 +27,7 @@ class SettingsScreen extends StatefulWidget {
 
   final http.Client? client;
 
-  /// Current language override (`en`, `zh`) or null to follow the system.
+  /// Current language code (see [kAppLanguages]) or null to follow the system.
   final String? languageCode;
 
   /// When true the screen is shown as the app root (no saved key yet) and
@@ -308,14 +309,11 @@ class _LanguageDropdown extends StatelessWidget {
               value: _system,
               child: Text(l10n.languageSystem),
             ),
-            DropdownMenuItem(
-              value: 'en',
-              child: Text(l10n.languageEnglish),
-            ),
-            DropdownMenuItem(
-              value: 'zh',
-              child: Text(l10n.languageChineseSimplified),
-            ),
+            for (final language in kAppLanguages)
+              DropdownMenuItem(
+                value: language.locale.languageCode,
+                child: Text(language.nativeName),
+              ),
           ],
           onChanged: (selection) =>
               onChanged(selection == _system ? null : selection),

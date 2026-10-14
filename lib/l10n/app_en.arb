@@ -28,8 +28,6 @@
 
   "languageLabel": "language",
   "languageSystem": "system",
-  "languageEnglish": "English",
-  "languageChineseSimplified": "简体中文",
 
   "windCalm": "calm",
   "windBreezy": "breezy",
