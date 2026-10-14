@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// An integer temperature rendered with a smaller degree sign on the baseline.
+/// An integer temperature rendered with a smaller degree sign in the upper
+/// right corner.
 ///
 /// Used for the hero reading, the forecast rows and the city list so the
 /// number/degree layout lives in one place.
@@ -27,8 +28,7 @@ class TemperatureLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '$value',
@@ -40,13 +40,16 @@ class TemperatureLabel extends StatelessWidget {
             letterSpacing: letterSpacing,
           ),
         ),
-        Text(
-          '\u00B0',
-          style: TextStyle(
-            color: color,
-            fontSize: fontSize * degreeScale,
-            fontWeight: FontWeight.w900,
-            height: 1.0,
+        Padding(
+          padding: EdgeInsets.only(top: fontSize * 0.06),
+          child: Text(
+            '\u00B0',
+            style: TextStyle(
+              color: color,
+              fontSize: fontSize * degreeScale,
+              fontWeight: FontWeight.w900,
+              height: 1.0,
+            ),
           ),
         ),
       ],
