@@ -20,13 +20,9 @@
   "errorEnterApiKey": "enter an API key",
 
   "searchCityHint": "search a city",
-  "myCities": "my cities",
-  "hotCities": "hot cities",
-  "searchResults": "results",
   "searchingCities": "searching…",
   "noMatchingCities": "no matching cities",
   "searchFailed": "could not search cities",
-  "removeCity": "remove",
   "keepOneCity": "keep at least one city",
   "cityAddFailed": "could not add city",
   "cityAdded": "{city} added",
@@ -37,14 +33,17 @@
       }
     }
   },
-  "cityRemoved": "{city} removed",
-  "@cityRemoved": {
+  "deleteCityTitle": "remove city",
+  "deleteCityMessage": "remove {city}?",
+  "@deleteCityMessage": {
     "placeholders": {
       "city": {
         "type": "String"
       }
     }
   },
+  "cancel": "cancel",
+  "delete": "delete",
 
   "metricFeelsLike": "feels like",
   "metricWind": "wind",

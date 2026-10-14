@@ -141,14 +141,31 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  void _remove(CityLocation city) {
+  Future<void> _confirmRemove(CityLocation city) async {
     final l10n = AppLocalizations.of(context);
     if (widget.cities.length <= 1) {
       _showSnack(l10n.keepOneCity);
       return;
     }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteCityTitle),
+        content: Text(l10n.deleteCityMessage(l10n.cityName(city))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     widget.onRemove(city);
-    _showSnack(l10n.cityRemoved(l10n.cityName(city)));
   }
 
   void _openCity(CityLocation city) {
@@ -179,7 +196,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   _searchField(l10n, palette),
                   const SizedBox(height: 20),
                   if (query.isEmpty)
-                    ..._savedRows(l10n, palette)
+                    ..._savedRows(palette)
                   else
                     ..._resultRows(l10n, palette),
                   const SizedBox(height: 8),
@@ -218,7 +235,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  List<Widget> _savedRows(AppLocalizations l10n, WeatherPalette palette) {
+  List<Widget> _savedRows(WeatherPalette palette) {
     return [
       for (var i = 0; i < widget.cities.length; i++)
         _CityRow(
@@ -229,21 +246,7 @@ class _SearchScreenState extends State<SearchScreen> {
           selected: widget.cities[i].id == widget.selectedCityId,
           showTopBorder: i != 0,
           onTap: () => widget.onSelected(widget.cities[i]),
-          trailing: InkResponse(
-            radius: 22,
-            onTap: () => _remove(widget.cities[i]),
-            child: Tooltip(
-              message: l10n.removeCity,
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  Icons.delete_outline,
-                  color: palette.muted,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
+          onLongPress: () => _confirmRemove(widget.cities[i]),
         ),
     ];
   }
@@ -312,6 +315,7 @@ class _CityRow extends StatelessWidget {
     required this.selected,
     required this.showTopBorder,
     required this.onTap,
+    this.onLongPress,
     this.trailing,
   });
 
@@ -321,6 +325,7 @@ class _CityRow extends StatelessWidget {
   final bool selected;
   final bool showTopBorder;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final Widget? trailing;
 
   @override
@@ -328,6 +333,7 @@ class _CityRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(

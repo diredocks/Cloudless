@@ -235,13 +235,16 @@ void main() {
     await tester.tap(find.text('search'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.longPress(find.text('北京'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('remove city'), findsOneWidget);
+    expect(find.text('remove 北京?'), findsOneWidget);
+
+    await tester.tap(find.text('delete'));
     await tester.pumpAndSettle();
 
     expect(store.cities, hasLength(cityCatalog.length - 1));
     expect(store.cities.any((c) => c.id == '101010100'), isFalse);
-
-    await tester.pump(const Duration(seconds: 3));
-    await tester.pumpAndSettle();
   });
 }
