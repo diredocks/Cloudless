@@ -247,4 +247,27 @@ void main() {
     expect(store.cities, hasLength(cityCatalog.length - 1));
     expect(store.cities.any((c) => c.id == '101010100'), isFalse);
   });
+
+  testWidgets('pull to refresh reloads the weather', (
+    WidgetTester tester,
+  ) async {
+    var weatherRequests = 0;
+    final client = MockClient((request) async {
+      if (request.url.host == 'decision-admin.tianqi.cn') {
+        return http.Response.bytes(utf8.encode(sampleCitySearchResponse), 200);
+      }
+      weatherRequests++;
+      return http.Response(sampleWeatherResponse, 200);
+    });
+
+    await tester.pumpWidget(appWith(MemorySettingsStore('test-key'), client: client));
+    await tester.pumpAndSettle();
+    final initial = weatherRequests;
+    expect(initial, cityCatalog.length);
+
+    await tester.fling(find.text('北京'), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+
+    expect(weatherRequests, greaterThan(initial));
+  });
 }

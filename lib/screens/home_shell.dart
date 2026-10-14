@@ -51,22 +51,27 @@ class _HomeShellState extends State<HomeShell> {
     _loadAll();
   }
 
+  Future<Map<String, WeatherBundle>> _fetchBundles() async {
+    final entries = await Future.wait(
+      _cities.map(
+        (city) async => MapEntry(city.id, await widget.api.fetch(city)),
+      ),
+    );
+    return Map.fromEntries(entries);
+  }
+
   Future<void> _loadAll() async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final entries = await Future.wait(
-        _cities.map(
-          (city) async => MapEntry(city.id, await widget.api.fetch(city)),
-        ),
-      );
+      final bundles = await _fetchBundles();
       if (!mounted) return;
       setState(() {
         _bundles
           ..clear()
-          ..addEntries(entries);
+          ..addAll(bundles);
         _loading = false;
       });
     } on Exception catch (error) {
@@ -75,6 +80,34 @@ class _HomeShellState extends State<HomeShell> {
         _error = error;
         _loading = false;
       });
+    }
+  }
+
+  /// Pull-to-refresh: reloads the current cities without blanking the screen,
+  /// reporting failures through a SnackBar instead.
+  Future<void> _refresh() async {
+    try {
+      final bundles = await _fetchBundles();
+      if (!mounted) return;
+      setState(() {
+        _bundles
+          ..clear()
+          ..addAll(bundles);
+      });
+    } on Exception catch (error) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              error is WeatherApiException ? l10n.weatherError(error) : '$error',
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
     }
   }
 
@@ -184,9 +217,14 @@ class _HomeShellState extends State<HomeShell> {
             Column(
               children: [
                 Expanded(
-                  child: KeyedSubtree(
-                    key: ValueKey('${city.id}-$_tab'),
-                    child: body,
+                  child: RefreshIndicator(
+                    onRefresh: _refresh,
+                    color: palette.background,
+                    backgroundColor: palette.foreground,
+                    child: KeyedSubtree(
+                      key: ValueKey('${city.id}-$_tab'),
+                      child: body,
+                    ),
                   ),
                 ),
                 WeatherBottomNav(
