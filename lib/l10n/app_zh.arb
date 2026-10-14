@@ -20,6 +20,17 @@
   "errorEnterApiKey": "请输入 API 密钥",
 
   "searchCityHint": "搜索城市",
+  "myCities": "我的城市",
+  "hotCities": "热门城市",
+  "searchResults": "搜索结果",
+  "searchingCities": "搜索中…",
+  "noMatchingCities": "未找到匹配的城市",
+  "searchFailed": "搜索城市失败",
+  "removeCity": "删除",
+  "keepOneCity": "至少保留一个城市",
+  "cityAddFailed": "添加城市失败",
+  "cityAdded": "已添加 {city}",
+  "cityRemoved": "已删除 {city}",
 
   "metricFeelsLike": "体感温度",
   "metricWind": "风速",
@@ -71,12 +82,6 @@
   "weekdaySunday": "周日",
 
   "weeklySummary": "未来 7 天以{condition}为主",
-
-  "cityMalaga": "马拉加，西班牙",
-  "cityDublin": "都柏林，爱尔兰",
-  "cityParis": "巴黎，法国",
-  "cityReykjavik": "雷克雅未克，冰岛",
-  "cityLondon": "伦敦，英国",
 
   "errorUnreachable": "无法连接到天气服务",
   "errorBadStatus": "天气服务返回错误 {status}",

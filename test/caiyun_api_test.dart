@@ -16,14 +16,14 @@ import 'helpers.dart';
 void main() {
   group('CaiyunMapper', () {
     final bundle = CaiyunMapper.toBundle(
-      malagaCity,
+      beijingCity,
       (jsonDecode(sampleWeatherResponse) as Map<String, dynamic>)['result']
           as Map<String, dynamic>,
     );
 
     test('maps the realtime block into the current weather', () {
       final current = bundle.current;
-      expect(current.city.name, 'malaga, spain');
+      expect(current.city.name, '北京');
       expect(current.temperature, 24);
       expect(current.skycon, 'CLEAR_DAY');
       expect(
@@ -42,7 +42,7 @@ void main() {
 
     test('maps the daily block into the weekly forecast', () {
       final weekly = bundle.weekly;
-      expect(weekly.city.name, 'malaga, spain');
+      expect(weekly.city.name, '北京');
       expect(weekly.days, hasLength(7));
       expect(weekly.days.first.date, '2026-10-14T00:00+02:00');
       expect(weekly.days.first.skycon, 'CLEAR_DAY');
@@ -64,11 +64,11 @@ void main() {
           }),
         );
 
-        final bundle = await api.fetch(malagaCity);
+        final bundle = await api.fetch(beijingCity);
 
         expect(
           requested.path,
-          contains('/v2.6/test-token/-4.4214,36.7213/weather'),
+          contains('/v2.6/test-token/116.407526,39.90403/weather'),
         );
         expect(requested.queryParameters['lang'], 'en_US');
         expect(bundle.current.temperature, 24);
@@ -86,7 +86,7 @@ void main() {
         }),
       );
 
-      await api.fetch(malagaCity);
+      await api.fetch(beijingCity);
 
       expect(requested.queryParameters['lang'], 'zh_CN');
     });
@@ -98,7 +98,7 @@ void main() {
       );
 
       await expectLater(
-        api.fetch(malagaCity),
+        api.fetch(beijingCity),
         throwsA(
           isA<WeatherApiException>()
               .having((e) => e.kind, 'kind', WeatherErrorKind.badStatus)
@@ -119,7 +119,7 @@ void main() {
       );
 
       await expectLater(
-        api.fetch(malagaCity),
+        api.fetch(beijingCity),
         throwsA(
           isA<WeatherApiException>()
               .having((e) => e.kind, 'kind', WeatherErrorKind.serviceError)
@@ -169,8 +169,8 @@ void main() {
     });
 
     test('localizes city names', () {
-      expect(en.cityName(malagaCity), 'malaga, spain');
-      expect(zh.cityName(malagaCity), '马拉加，西班牙');
+      expect(en.cityName(beijingCity), '北京');
+      expect(zh.cityName(beijingCity), '北京');
     });
   });
 

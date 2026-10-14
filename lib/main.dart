@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'data/caiyun_api.dart';
+import 'data/city_search_api.dart';
 import 'data/settings_store.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
@@ -31,6 +32,7 @@ class CloudlessApp extends StatefulWidget {
 class _CloudlessAppState extends State<CloudlessApp>
     with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
+  late final CitySearchApi _citySearch;
   CaiyunApi? _api;
   String? _apiKey;
   String? _languageCode;
@@ -41,12 +43,14 @@ class _CloudlessAppState extends State<CloudlessApp>
     WidgetsBinding.instance.addObserver(this);
     _apiKey = widget.store.apiKey;
     _languageCode = widget.store.languageCode;
+    _citySearch = CitySearchApi(client: widget.client);
     _api = _createApi();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _citySearch.dispose();
     _api?.dispose();
     super.dispose();
   }
@@ -138,6 +142,8 @@ class _CloudlessAppState extends State<CloudlessApp>
           : HomeShell(
               key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
               api: api,
+              citySearch: _citySearch,
+              store: widget.store,
               onOpenSettings: _openSettings,
             ),
     );

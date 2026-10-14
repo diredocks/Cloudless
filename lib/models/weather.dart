@@ -83,6 +83,13 @@ class CityLocation {
     required this.latitude,
   });
 
+  factory CityLocation.fromJson(Map<String, Object?> json) => CityLocation(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    longitude: (json['longitude'] as num).toDouble(),
+    latitude: (json['latitude'] as num).toDouble(),
+  );
+
   final String id;
 
   /// Default (English) display name; localized names live in the l10n layer.
@@ -90,6 +97,13 @@ class CityLocation {
 
   final double longitude;
   final double latitude;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'id': id,
+    'name': name,
+    'longitude': longitude,
+    'latitude': latitude,
+  };
 }
 
 class WeatherBundle {

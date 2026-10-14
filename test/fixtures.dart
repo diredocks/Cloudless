@@ -57,3 +57,11 @@ const sampleWeatherResponse = '''
   }
 }
 ''';
+
+/// A trimmed-down `searchAreaInfo` response (China Weather area search).
+const sampleCitySearchResponse = '''
+[
+  {"city":"北京","dis":"北京","pro":"北京","cid":"101010100","lat":"39.904583","lng":"116.406992"},
+  {"city":"海淀","dis":"海淀","pro":"北京","cid":"101010200","lat":"39.959401","lng":"116.298942"}
+]
+''';

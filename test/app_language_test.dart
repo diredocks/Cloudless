@@ -49,7 +49,7 @@ void main() {
       expect(l10n.skyconLabel('CLEAR_DAY'), isNotEmpty);
       expect(l10n.windLabel(10), isNotEmpty);
       expect(l10n.weekdayName('2026-10-14T00:00+02:00'), isNotEmpty);
-      expect(l10n.cityName(malagaCity), isNotEmpty);
+      expect(l10n.cityName(beijingCity), isNotEmpty);
     }
   });
 }

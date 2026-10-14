@@ -3,7 +3,7 @@ import 'package:cloudless_app/data/settings_store.dart';
 import 'package:cloudless_app/models/weather.dart';
 
 /// The first catalog entry, used by tests that need a concrete [CityLocation].
-final CityLocation malagaCity = cityCatalog.first;
+final CityLocation beijingCity = cityCatalog.first;
 
 /// In-memory [SettingsStore] for widget tests.
 class MemorySettingsStore implements SettingsStore {
@@ -11,6 +11,8 @@ class MemorySettingsStore implements SettingsStore {
 
   String? _apiKey;
   String? _languageCode;
+  List<CityLocation> _cities = const [];
+  String? _selectedCityId;
 
   @override
   String? get apiKey => _apiKey;
@@ -23,4 +25,17 @@ class MemorySettingsStore implements SettingsStore {
 
   @override
   Future<void> setLanguageCode(String? value) async => _languageCode = value;
+
+  @override
+  List<CityLocation> get cities => _cities;
+
+  @override
+  Future<void> setCities(List<CityLocation> cities) async =>
+      _cities = List.of(cities);
+
+  @override
+  String? get selectedCityId => _selectedCityId;
+
+  @override
+  Future<void> setSelectedCityId(String? value) async => _selectedCityId = value;
 }

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:cloudless_app/data/cities.dart';
 import 'package:cloudless_app/data/settings_store.dart';
 import 'package:cloudless_app/main.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,15 @@ void main() {
   MockClient okClient() =>
       MockClient((request) async => http.Response(sampleWeatherResponse, 200));
 
+  /// Answers the area-search endpoint with Chinese cities and the weather
+  /// endpoint with the sample payload.
+  MockClient routingClient() => MockClient((request) async {
+    if (request.url.host == 'decision-admin.tianqi.cn') {
+      return http.Response.bytes(utf8.encode(sampleCitySearchResponse), 200);
+    }
+    return http.Response(sampleWeatherResponse, 200);
+  });
+
   Widget appWith(SettingsStore store, {http.Client? client}) =>
       CloudlessApp(store: store, client: client ?? okClient());
 
@@ -26,7 +37,7 @@ void main() {
     await tester.pumpWidget(app(apiKey: 'test-key'));
     await tester.pumpAndSettle();
 
-    expect(find.text('malaga, spain'), findsOneWidget);
+    expect(find.text('北京'), findsOneWidget);
     expect(find.text('24'), findsOneWidget);
     expect(
       find.text('Over the next two hours, no rain is expected'),
@@ -54,11 +65,11 @@ void main() {
     await tester.tap(find.text('search'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('london, uk'));
+    await tester.tap(find.text('广州'));
     await tester.pumpAndSettle();
 
-    expect(find.text('london, uk'), findsOneWidget);
-    expect(find.text('malaga, spain'), findsNothing);
+    expect(find.text('广州'), findsOneWidget);
+    expect(find.text('北京'), findsNothing);
   });
 
   testWidgets('shows a spinner while the request is in flight', (
@@ -94,7 +105,7 @@ void main() {
       find.text('enter your API key and choose a language'),
       findsOneWidget,
     );
-    expect(find.text('malaga, spain'), findsNothing);
+    expect(find.text('北京'), findsNothing);
   });
 
   testWidgets('entering a valid key on first launch opens the app', (
@@ -107,7 +118,7 @@ void main() {
     await tester.tap(find.text('save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('malaga, spain'), findsOneWidget);
+    expect(find.text('北京'), findsOneWidget);
   });
 
   testWidgets('tapping settings shows a hint, long press opens settings', (
@@ -144,7 +155,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.apiKey, 'new-key');
-    expect(find.text('malaga, spain'), findsOneWidget);
+    expect(find.text('北京'), findsOneWidget);
   });
 
   testWidgets('renders Simplified Chinese when selected', (
@@ -153,7 +164,7 @@ void main() {
     await tester.pumpWidget(app(apiKey: 'test-key', languageCode: 'zh'));
     await tester.pumpAndSettle();
 
-    expect(find.text('马拉加，西班牙'), findsOneWidget);
+    expect(find.text('北京'), findsOneWidget);
     expect(find.text('今天'), findsOneWidget);
     expect(find.text('体感温度'), findsOneWidget);
 
@@ -188,5 +199,49 @@ void main() {
 
     expect(store.languageCode, 'zh');
     expect(find.text('今天'), findsOneWidget);
+  });
+
+  testWidgets('searches and adds a city from the results', (
+    WidgetTester tester,
+  ) async {
+    final store = MemorySettingsStore('test-key');
+    await tester.pumpWidget(appWith(store, client: routingClient()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('search'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '北京');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    expect(find.text('北京，海淀'), findsOneWidget);
+
+    await tester.tap(find.text('北京，海淀'));
+    await tester.pumpAndSettle();
+
+    expect(store.cities.any((c) => c.id == '101010200'), isTrue);
+
+    // Let the confirmation SnackBar time out so no timer outlives the test.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('removes a city from the list', (WidgetTester tester) async {
+    final store = MemorySettingsStore('test-key');
+    await tester.pumpWidget(appWith(store, client: routingClient()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('search'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.pumpAndSettle();
+
+    expect(store.cities, hasLength(cityCatalog.length - 1));
+    expect(store.cities.any((c) => c.id == '101010100'), isFalse);
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
   });
 }

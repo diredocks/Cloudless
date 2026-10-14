@@ -20,6 +20,31 @@
   "errorEnterApiKey": "enter an API key",
 
   "searchCityHint": "search a city",
+  "myCities": "my cities",
+  "hotCities": "hot cities",
+  "searchResults": "results",
+  "searchingCities": "searching…",
+  "noMatchingCities": "no matching cities",
+  "searchFailed": "could not search cities",
+  "removeCity": "remove",
+  "keepOneCity": "keep at least one city",
+  "cityAddFailed": "could not add city",
+  "cityAdded": "{city} added",
+  "@cityAdded": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "cityRemoved": "{city} removed",
+  "@cityRemoved": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
 
   "metricFeelsLike": "feels like",
   "metricWind": "wind",
@@ -78,12 +103,6 @@
       }
     }
   },
-
-  "cityMalaga": "malaga, spain",
-  "cityDublin": "dublin, ireland",
-  "cityParis": "paris, france",
-  "cityReykjavik": "reykjavik, iceland",
-  "cityLondon": "london, uk",
 
   "errorUnreachable": "could not reach the weather service",
   "errorBadStatus": "the weather service returned {status}",

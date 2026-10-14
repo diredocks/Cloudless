@@ -1,12 +1,13 @@
 import '../data/caiyun_api.dart';
-import '../data/cities.dart';
 import '../data/skycons.dart';
 import '../models/weather.dart';
 import 'app_localizations.dart';
 
 /// Localized presentation helpers for the language-neutral weather models.
 extension WeatherLocalizations on AppLocalizations {
-  String cityName(CityLocation city) => localizedCityName(this, city);
+  /// Display name for [city]. China Weather area names are Chinese and are not
+  /// translated.
+  String cityName(CityLocation city) => city.name;
 
   String skyconLabel(String skycon) => skyconFor(skycon).label(this);
 

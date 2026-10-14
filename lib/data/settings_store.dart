@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persistence for user settings.
+import '../models/weather.dart';
+
+/// Persistence for user settings and the saved city list.
 abstract class SettingsStore {
   String? get apiKey;
 
@@ -10,6 +14,17 @@ abstract class SettingsStore {
   String? get languageCode;
 
   Future<void> setLanguageCode(String? value);
+
+  /// The user's cities in display order. Empty when the user has not saved any
+  /// yet, in which case the caller seeds the defaults.
+  List<CityLocation> get cities;
+
+  Future<void> setCities(List<CityLocation> cities);
+
+  /// Id of the currently selected city, or null when unset.
+  String? get selectedCityId;
+
+  Future<void> setSelectedCityId(String? value);
 }
 
 /// [SettingsStore] backed by [SharedPreferences].
@@ -18,6 +33,8 @@ class SharedPreferencesSettingsStore implements SettingsStore {
 
   static const String _apiKeyKey = 'caiyun_api_key';
   static const String _languageKey = 'app_language';
+  static const String _citiesKey = 'saved_cities';
+  static const String _selectedCityKey = 'selected_city';
 
   final SharedPreferences _preferences;
 
@@ -46,6 +63,47 @@ class SharedPreferencesSettingsStore implements SettingsStore {
       await _preferences.remove(_languageKey);
     } else {
       await _preferences.setString(_languageKey, value);
+    }
+  }
+
+  @override
+  List<CityLocation> get cities {
+    final raw = _preferences.getStringList(_citiesKey);
+    if (raw == null) return const [];
+    final result = <CityLocation>[];
+    for (final entry in raw) {
+      try {
+        final decoded = jsonDecode(entry);
+        if (decoded is Map<String, dynamic>) {
+          result.add(CityLocation.fromJson(decoded));
+        }
+      } on FormatException {
+        // Skip corrupt entries rather than losing the whole list.
+      } on TypeError {
+        // Skip entries with unexpected shapes.
+      }
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setCities(List<CityLocation> cities) => _preferences.setStringList(
+    _citiesKey,
+    [for (final city in cities) jsonEncode(city.toJson())],
+  );
+
+  @override
+  String? get selectedCityId {
+    final value = _preferences.getString(_selectedCityKey);
+    return (value == null || value.isEmpty) ? null : value;
+  }
+
+  @override
+  Future<void> setSelectedCityId(String? value) async {
+    if (value == null || value.isEmpty) {
+      await _preferences.remove(_selectedCityKey);
+    } else {
+      await _preferences.setString(_selectedCityKey, value);
     }
   }
 }
