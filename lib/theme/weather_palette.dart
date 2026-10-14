@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class WeatherPalette {
   const WeatherPalette({required this.background, required this.foreground});
@@ -8,6 +9,17 @@ class WeatherPalette {
 
   /// Hairline color for row dividers and field underlines.
   Color get hairline => foreground.withValues(alpha: 0.55);
+
+  /// Android status bar style matching [background], so it blends into the
+  /// screen instead of falling back to the system's light default.
+  SystemUiOverlayStyle get systemUiOverlayStyle {
+    final isLight = background.computeLuminance() > 0.5;
+    return SystemUiOverlayStyle(
+      statusBarColor: background,
+      statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
+      statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
+    );
+  }
 
   /// Muted foreground used for secondary text.
   Color get muted => foreground.withValues(alpha: 0.6);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/caiyun_api.dart';
 import '../data/cities.dart';
@@ -102,7 +103,9 @@ class _HomeShellState extends State<HomeShell> {
         ..showSnackBar(
           SnackBar(
             content: Text(
-              error is WeatherApiException ? l10n.weatherError(error) : '$error',
+              error is WeatherApiException
+                  ? l10n.weatherError(error)
+                  : '$error',
             ),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
@@ -207,42 +210,45 @@ class _HomeShellState extends State<HomeShell> {
       ),
     };
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 350),
-      color: palette.background,
-      child: SafeArea(
-        bottom: false,
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _refresh,
-                    color: palette.background,
-                    backgroundColor: palette.foreground,
-                    child: KeyedSubtree(
-                      key: ValueKey('${city.id}-$_tab'),
-                      child: body,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: palette.systemUiOverlayStyle,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        color: palette.background,
+        child: SafeArea(
+          bottom: false,
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _refresh,
+                      color: palette.background,
+                      backgroundColor: palette.foreground,
+                      child: KeyedSubtree(
+                        key: ValueKey('${city.id}-$_tab'),
+                        child: body,
+                      ),
                     ),
                   ),
-                ),
-                WeatherBottomNav(
-                  palette: palette,
-                  currentTab: _tab,
-                  onSelected: (tab) => setState(() => _tab = tab),
-                ),
-              ],
-            ),
-            Positioned(
-              top: 8,
-              right: 12,
-              child: _SettingsButton(
-                palette: palette,
-                onOpenSettings: widget.onOpenSettings,
+                  WeatherBottomNav(
+                    palette: palette,
+                    currentTab: _tab,
+                    onSelected: (tab) => setState(() => _tab = tab),
+                  ),
+                ],
               ),
-            ),
-          ],
+              Positioned(
+                top: 8,
+                right: 12,
+                child: _SettingsButton(
+                  palette: palette,
+                  onOpenSettings: widget.onOpenSettings,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -299,49 +305,55 @@ class _StatusScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     const palette = WeatherPalette.sky;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 350),
-      color: palette.background,
-      child: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (onRetry == null)
-                    CircularProgressIndicator(color: palette.foreground),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      message,
-                      textAlign: TextAlign.center,
-                      style: palette.text(size: 18, weight: FontWeight.w700),
-                    ),
-                  ),
-                  if (onRetry != null) ...[
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: onRetry,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: palette.systemUiOverlayStyle,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        color: palette.background,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onRetry == null)
+                      CircularProgressIndicator(color: palette.foreground),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Text(
-                        l10n.tryAgain,
-                        style: palette.text(size: 16, weight: FontWeight.w800),
+                        message,
+                        textAlign: TextAlign.center,
+                        style: palette.text(size: 18, weight: FontWeight.w700),
                       ),
                     ),
+                    if (onRetry != null) ...[
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: onRetry,
+                        child: Text(
+                          l10n.tryAgain,
+                          style: palette.text(
+                            size: 16,
+                            weight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            Positioned(
-              top: 8,
-              right: 12,
-              child: _SettingsButton(
-                palette: palette,
-                onOpenSettings: onOpenSettings,
+              Positioned(
+                top: 8,
+                right: 12,
+                child: _SettingsButton(
+                  palette: palette,
+                  onOpenSettings: onOpenSettings,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

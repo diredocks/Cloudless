@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/caiyun_api.dart';
@@ -101,149 +102,163 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = AppLocalizations.of(context);
     const palette = WeatherPalette.navy;
 
-    return Scaffold(
-      backgroundColor: palette.background,
-      appBar: widget.isFirstRun
-          ? null
-          : AppBar(
-              backgroundColor: palette.background,
-              foregroundColor: palette.foreground,
-              elevation: 0,
-              title: Text(l10n.settingsTitle),
-            ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 22,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (widget.isFirstRun) ...[
-                      const SizedBox(height: 40),
-                      Icon(Icons.settings, color: palette.foreground, size: 64),
-                      const SizedBox(height: 16),
-                      Text(
-                        l10n.firstRunTitle,
-                        style: palette.text(
-                          size: 30,
-                          weight: FontWeight.w900,
-                          height: 1.1,
-                          letterSpacing: -0.5,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: palette.systemUiOverlayStyle,
+      child: Scaffold(
+        backgroundColor: palette.background,
+        appBar: widget.isFirstRun
+            ? null
+            : AppBar(
+                backgroundColor: palette.background,
+                foregroundColor: palette.foreground,
+                systemOverlayStyle: palette.systemUiOverlayStyle,
+                elevation: 0,
+                title: Text(l10n.settingsTitle),
+              ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (widget.isFirstRun) ...[
+                        const SizedBox(height: 40),
+                        Icon(
+                          Icons.settings,
+                          color: palette.foreground,
+                          size: 64,
                         ),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.firstRunTitle,
+                          style: palette.text(
+                            size: 30,
+                            weight: FontWeight.w900,
+                            height: 1.1,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.firstRunPrompt,
+                          style: palette.text(
+                            size: 18,
+                            weight: FontWeight.w600,
+                            height: 1.3,
+                            color: palette.foreground.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                      Text(
+                        l10n.apiKeyLabel,
+                        style: palette.text(size: 17, weight: FontWeight.w700),
                       ),
                       const SizedBox(height: 8),
+                      TextField(
+                        controller: _controller,
+                        obscureText: _obscure,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        cursorColor: palette.foreground,
+                        style: palette.text(size: 20, weight: FontWeight.w700),
+                        decoration: InputDecoration(
+                          hintText: l10n.apiKeyHint,
+                          hintStyle: palette.text(
+                            size: 20,
+                            weight: FontWeight.w700,
+                            color: palette.foreground.withValues(alpha: 0.5),
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
+                            icon: Icon(
+                              _obscure
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: palette.foreground,
+                            ),
+                          ),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: palette.hairline,
+                              width: 1,
+                            ),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: palette.foreground,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _error!,
+                          style: palette.text(
+                            size: 16,
+                            weight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
                       Text(
-                        l10n.firstRunPrompt,
-                        style: palette.text(
-                          size: 18,
-                          weight: FontWeight.w600,
-                          height: 1.3,
-                          color: palette.foreground.withValues(alpha: 0.8),
-                        ),
+                        l10n.languageLabel,
+                        style: palette.text(size: 17, weight: FontWeight.w700),
                       ),
-                      const SizedBox(height: 40),
-                    ],
-                    Text(
-                      l10n.apiKeyLabel,
-                      style: palette.text(size: 17, weight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _controller,
-                      obscureText: _obscure,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      cursorColor: palette.foreground,
-                      style: palette.text(size: 20, weight: FontWeight.w700),
-                      decoration: InputDecoration(
-                        hintText: l10n.apiKeyHint,
-                        hintStyle: palette.text(
-                          size: 20,
-                          weight: FontWeight.w700,
-                          color: palette.foreground.withValues(alpha: 0.5),
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                          icon: Icon(
-                            _obscure ? Icons.visibility_off : Icons.visibility,
-                            color: palette.foreground,
-                          ),
-                        ),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: palette.hairline,
-                            width: 1,
-                          ),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: palette.foreground,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _error!,
-                        style: palette.text(size: 16, weight: FontWeight.w700),
+                      const SizedBox(height: 4),
+                      _LanguageDropdown(
+                        value: _languageCode,
+                        palette: palette,
+                        onChanged: _selectLanguage,
                       ),
                     ],
-                    const SizedBox(height: 32),
-                    Text(
-                      l10n.languageLabel,
-                      style: palette.text(size: 17, weight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 4),
-                    _LanguageDropdown(
-                      value: _languageCode,
-                      palette: palette,
-                      onChanged: _selectLanguage,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: FilledButton(
-                  onPressed: _saving ? null : _save,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: palette.foreground,
-                    foregroundColor: palette.background,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
                   ),
-                  child: _saving
-                      ? SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: palette.background,
-                          ),
-                        )
-                      : Text(
-                          l10n.save,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: _saving ? null : _save,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: palette.foreground,
+                      foregroundColor: palette.background,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    child: _saving
+                        ? SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: palette.background,
+                            ),
+                          )
+                        : Text(
+                            l10n.save,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
