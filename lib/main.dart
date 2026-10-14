@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'data/caiyun_api.dart';
 import 'screens/home_shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const CloudlessApp());
+  runApp(CloudlessApp(api: CaiyunApi()));
 }
 
 class CloudlessApp extends StatelessWidget {
-  const CloudlessApp({super.key});
+  const CloudlessApp({super.key, required this.api});
+
+  final CaiyunApi api;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +25,7 @@ class CloudlessApp extends StatelessWidget {
         splashFactory: NoSplash.splashFactory,
         fontFamily: null,
       ),
-      home: const HomeShell(),
+      home: HomeShell(api: api),
     );
   }
 }

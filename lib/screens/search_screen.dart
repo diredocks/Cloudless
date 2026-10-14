@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/mock_weather.dart';
+import '../data/cities.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 
@@ -8,13 +8,15 @@ class SearchScreen extends StatefulWidget {
   const SearchScreen({
     super.key,
     required this.palette,
-    required this.selectedCity,
+    required this.bundles,
+    required this.selectedCityId,
     required this.onSelected,
   });
 
   final WeatherPalette palette;
-  final String selectedCity;
-  final ValueChanged<City> onSelected;
+  final Map<String, WeatherBundle> bundles;
+  final String selectedCityId;
+  final ValueChanged<CityLocation> onSelected;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -33,7 +35,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = widget.palette;
-    final results = mockCities
+    final results = cityCatalog
         .where((c) => c.name.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
@@ -86,8 +88,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   for (var i = 0; i < results.length; i++)
                     _CityRow(
                       city: results[i],
+                      temperature: widget.bundles[results[i].id]
+                          ?.current
+                          .temperature,
                       palette: palette,
-                      selected: results[i].name == widget.selectedCity,
+                      selected: results[i].id == widget.selectedCityId,
                       showTopBorder: i != 0,
                       onTap: () => widget.onSelected(results[i]),
                     ),
@@ -105,13 +110,15 @@ class _SearchScreenState extends State<SearchScreen> {
 class _CityRow extends StatelessWidget {
   const _CityRow({
     required this.city,
+    required this.temperature,
     required this.palette,
     required this.selected,
     required this.showTopBorder,
     required this.onTap,
   });
 
-  final City city;
+  final CityLocation city;
+  final int? temperature;
   final WeatherPalette palette;
   final bool selected;
   final bool showTopBorder;
@@ -136,7 +143,7 @@ class _CityRow extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                city.current.location,
+                city.name,
                 style: TextStyle(
                   color: palette.foreground,
                   fontSize: 26,
@@ -145,15 +152,16 @@ class _CityRow extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              '${city.current.temperature}\u00B0',
-              style: TextStyle(
-                color: palette.foreground,
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1,
+            if (temperature != null)
+              Text(
+                '$temperature\u00B0',
+                style: TextStyle(
+                  color: palette.foreground,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1,
+                ),
               ),
-            ),
           ],
         ),
       ),

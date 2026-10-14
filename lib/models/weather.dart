@@ -61,12 +61,28 @@ class WeeklyWeather {
   final WeatherPalette palette;
 }
 
-class City {
-  const City({
+class CityLocation {
+  const CityLocation({
+    required this.id,
     required this.name,
-    required this.current,
+    required this.longitude,
+    required this.latitude,
   });
 
+  final String id;
   final String name;
+  final double longitude;
+  final double latitude;
+}
+
+class WeatherBundle {
+  const WeatherBundle({
+    required this.city,
+    required this.current,
+    required this.weekly,
+  });
+
+  final CityLocation city;
   final CurrentWeather current;
+  final WeeklyWeather weekly;
 }
