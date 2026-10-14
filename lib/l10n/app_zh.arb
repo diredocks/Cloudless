@@ -25,7 +25,6 @@
   "searchFailed": "搜索城市失败",
   "keepOneCity": "至少保留一个城市",
   "cityAddFailed": "添加城市失败",
-  "cityAdded": "已添加 {city}",
   "deleteCityTitle": "删除城市",
   "deleteCityMessage": "确定删除 {city} 吗？",
   "cancel": "取消",

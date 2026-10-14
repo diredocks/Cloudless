@@ -25,14 +25,6 @@
   "searchFailed": "could not search cities",
   "keepOneCity": "keep at least one city",
   "cityAddFailed": "could not add city",
-  "cityAdded": "{city} added",
-  "@cityAdded": {
-    "placeholders": {
-      "city": {
-        "type": "String"
-      }
-    }
-  },
   "deleteCityTitle": "remove city",
   "deleteCityMessage": "remove {city}?",
   "@deleteCityMessage": {

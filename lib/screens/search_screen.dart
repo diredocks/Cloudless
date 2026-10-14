@@ -134,11 +134,8 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     } else {
       setState(() => _addingId = null);
+      _showSnack(l10n.cityAddFailed);
     }
-
-    _showSnack(
-      ok ? l10n.cityAdded(l10n.cityName(city)) : l10n.cityAddFailed,
-    );
   }
 
   Future<void> _confirmRemove(CityLocation city) async {
