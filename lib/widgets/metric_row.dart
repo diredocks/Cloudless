@@ -25,9 +25,7 @@ class MetricRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: showTopBorder
-                ? palette.hairline
-                : Colors.transparent,
+            color: showTopBorder ? palette.hairline : Colors.transparent,
             width: 1,
           ),
         ),
@@ -42,20 +40,18 @@ class MetricRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    color: palette.foreground,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
+                  style: palette.text(
+                    size: 17,
+                    weight: FontWeight.w700,
                     height: 1.1,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
-                    color: palette.foreground,
-                    fontSize: 21,
-                    fontWeight: FontWeight.w800,
+                  style: palette.text(
+                    size: 21,
+                    weight: FontWeight.w800,
                     height: 1.1,
                   ),
                 ),
@@ -65,59 +61,15 @@ class MetricRow extends StatelessWidget {
           Text(
             descriptor,
             textAlign: TextAlign.right,
-            style: TextStyle(
-              color: palette.foreground,
-              fontSize: 40,
-              fontWeight: FontWeight.w900,
+            style: palette.text(
+              size: 40,
+              weight: FontWeight.w900,
               height: 1.0,
               letterSpacing: -1,
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class BigTemperature extends StatelessWidget {
-  const BigTemperature({
-    super.key,
-    required this.value,
-    required this.color,
-    this.fontSize = 130,
-  });
-
-  final int value;
-  final Color color;
-  final double fontSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Text(
-          '$value',
-          style: TextStyle(
-            color: color,
-            fontSize: fontSize,
-            fontWeight: FontWeight.w900,
-            height: 1.0,
-            letterSpacing: -4,
-          ),
-        ),
-        Text(
-          '\u00B0',
-          style: TextStyle(
-            color: color,
-            fontSize: fontSize * 0.62,
-            fontWeight: FontWeight.w900,
-            height: 1.0,
-          ),
-        ),
-      ],
     );
   }
 }

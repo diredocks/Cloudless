@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../widgets/metric_row.dart';
+import '../widgets/temperature_label.dart';
 
 class TodayScreen extends StatelessWidget {
   const TodayScreen({super.key, required this.weather});
@@ -28,25 +29,23 @@ class TodayScreen extends StatelessWidget {
                     SizedBox(height: constraints.maxHeight * 0.14),
                     Text(
                       l10n.cityName(weather.city),
-                      style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
+                      style: palette.text(
+                        size: 26,
+                        weight: FontWeight.w900,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    BigTemperature(
+                    TemperatureLabel(
                       value: weather.temperature,
                       color: palette.foreground,
                     ),
                     const SizedBox(height: 18),
                     Text(
                       l10n.currentSummary(weather),
-                      style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
+                      style: palette.text(
+                        size: 36,
+                        weight: FontWeight.w800,
                         height: 1.08,
                         letterSpacing: -0.5,
                       ),

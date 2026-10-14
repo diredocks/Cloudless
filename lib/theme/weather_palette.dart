@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 
 class WeatherPalette {
-  const WeatherPalette({
-    required this.background,
-    required this.foreground,
-  });
+  const WeatherPalette({required this.background, required this.foreground});
 
   final Color background;
   final Color foreground;
 
-  Color get subtle => foreground.withValues(alpha: 0.65);
+  /// Hairline color for row dividers and field underlines.
   Color get hairline => foreground.withValues(alpha: 0.55);
+
+  /// Muted foreground used for secondary text.
+  Color get muted => foreground.withValues(alpha: 0.6);
+
+  /// A foreground-colored [TextStyle], so screens do not repeat the color.
+  TextStyle text({
+    double? size,
+    FontWeight? weight,
+    double? height,
+    double? letterSpacing,
+    Color? color,
+  }) => TextStyle(
+    color: color ?? foreground,
+    fontSize: size,
+    fontWeight: weight,
+    height: height,
+    letterSpacing: letterSpacing,
+  );
 
   static const orange = WeatherPalette(
     background: Color(0xFFE1541D),
     foreground: Color(0xFFFBEFCE),
-  );
-
-  static const forest = WeatherPalette(
-    background: Color(0xFF0A4A17),
-    foreground: Color(0xFFC7F0BF),
-  );
-
-  static const mint = WeatherPalette(
-    background: Color(0xFFC9EFA6),
-    foreground: Color(0xFF0A4A17),
   );
 
   static const navy = WeatherPalette(

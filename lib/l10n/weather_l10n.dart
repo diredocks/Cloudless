@@ -1,41 +1,14 @@
 import '../data/caiyun_api.dart';
+import '../data/cities.dart';
+import '../data/skycons.dart';
 import '../models/weather.dart';
 import 'app_localizations.dart';
 
 /// Localized presentation helpers for the language-neutral weather models.
 extension WeatherLocalizations on AppLocalizations {
-  String cityName(CityLocation city) => switch (city.id) {
-        'malaga' => cityMalaga,
-        'dublin' => cityDublin,
-        'paris' => cityParis,
-        'reykjavik' => cityReykjavik,
-        'london' => cityLondon,
-        _ => city.name,
-      };
+  String cityName(CityLocation city) => localizedCityName(this, city);
 
-  String skyconLabel(String skycon) => switch (skycon) {
-        'CLEAR_DAY' => skySunny,
-        'CLEAR_NIGHT' => skyClear,
-        'PARTLY_CLOUDY_DAY' => skyPartlyCloudy,
-        'PARTLY_CLOUDY_NIGHT' => skyPartlyCloudy,
-        'CLOUDY' => skyCloudy,
-        'LIGHT_HAZE' => skyLightHaze,
-        'MODERATE_HAZE' => skyHazy,
-        'HEAVY_HAZE' => skyHeavyHaze,
-        'FOG' => skyFoggy,
-        'DUST' => skyDusty,
-        'SAND' => skySandy,
-        'WIND' => skyWindy,
-        'LIGHT_RAIN' => skyLightRain,
-        'MODERATE_RAIN' => skyRain,
-        'HEAVY_RAIN' => skyHeavyRain,
-        'STORM_RAIN' => skyStorm,
-        'LIGHT_SNOW' => skyLightSnow,
-        'MODERATE_SNOW' => skySnow,
-        'HEAVY_SNOW' => skyHeavySnow,
-        'STORM_SNOW' => skyBlizzard,
-        _ => skyClear,
-      };
+  String skyconLabel(String skycon) => skyconFor(skycon).label(this);
 
   /// Keypoint text from the API when present, otherwise the sky condition.
   String currentSummary(CurrentWeather weather) {
@@ -82,13 +55,12 @@ extension WeatherLocalizations on AppLocalizations {
       weeklySummary(skyconLabel(dominantSkycon));
 
   String weatherError(WeatherApiException error) => switch (error.kind) {
-        WeatherErrorKind.unreachable => errorUnreachable,
-        WeatherErrorKind.badStatus =>
-          errorBadStatus(error.statusCode ?? 0),
-        WeatherErrorKind.invalidData => errorInvalidData,
-        WeatherErrorKind.noData => errorNoData,
-        WeatherErrorKind.serviceError => error.detail ?? errorService,
-      };
+    WeatherErrorKind.unreachable => errorUnreachable,
+    WeatherErrorKind.badStatus => errorBadStatus(error.statusCode ?? 0),
+    WeatherErrorKind.invalidData => errorInvalidData,
+    WeatherErrorKind.noData => errorNoData,
+    WeatherErrorKind.serviceError => error.detail ?? errorService,
+  };
 
   String? _apiText(String? value) {
     final text = value?.trim();

@@ -8,44 +8,21 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'fixtures.dart';
-
-class _MemorySettingsStore implements SettingsStore {
-  _MemorySettingsStore([this._apiKey, this._languageCode]);
-
-  String? _apiKey;
-  String? _languageCode;
-
-  @override
-  String? get apiKey => _apiKey;
-
-  @override
-  Future<void> setApiKey(String value) async => _apiKey = value;
-
-  @override
-  String? get languageCode => _languageCode;
-
-  @override
-  Future<void> setLanguageCode(String? value) async => _languageCode = value;
-}
+import 'helpers.dart';
 
 void main() {
-  MockClient okClient() => MockClient(
-        (request) async => http.Response(sampleWeatherResponse, 200),
-      );
+  MockClient okClient() =>
+      MockClient((request) async => http.Response(sampleWeatherResponse, 200));
 
-  Widget appWith(SettingsStore store, {http.Client? client}) => CloudlessApp(
-        store: store,
-        client: client ?? okClient(),
-      );
+  Widget appWith(SettingsStore store, {http.Client? client}) =>
+      CloudlessApp(store: store, client: client ?? okClient());
 
   Widget app({String? apiKey, String? languageCode, http.Client? client}) =>
-      appWith(
-        _MemorySettingsStore(apiKey, languageCode),
-        client: client,
-      );
+      appWith(MemorySettingsStore(apiKey, languageCode), client: client);
 
-  testWidgets('renders the current weather fetched from the API',
-      (WidgetTester tester) async {
+  testWidgets('renders the current weather fetched from the API', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(app(apiKey: 'test-key'));
     await tester.pumpAndSettle();
 
@@ -68,8 +45,9 @@ void main() {
     expect(find.text('wednesday'), findsOneWidget);
   });
 
-  testWidgets('switching city from search returns to today',
-      (WidgetTester tester) async {
+  testWidgets('switching city from search returns to today', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(app(apiKey: 'test-key'));
     await tester.pumpAndSettle();
 
@@ -83,8 +61,9 @@ void main() {
     expect(find.text('malaga, spain'), findsNothing);
   });
 
-  testWidgets('shows a spinner while the request is in flight',
-      (WidgetTester tester) async {
+  testWidgets('shows a spinner while the request is in flight', (
+    WidgetTester tester,
+  ) async {
     final pending = MockClient((request) => Completer<http.Response>().future);
     await tester.pumpWidget(app(apiKey: 'test-key', client: pending));
     await tester.pump();
@@ -93,8 +72,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('shows a retry action when the request fails',
-      (WidgetTester tester) async {
+  testWidgets('shows a retry action when the request fails', (
+    WidgetTester tester,
+  ) async {
     final failing = MockClient((request) async => http.Response('boom', 500));
     await tester.pumpWidget(app(apiKey: 'test-key', client: failing));
     await tester.pumpAndSettle();
@@ -103,8 +83,9 @@ void main() {
     expect(find.text('the weather service returned 500'), findsOneWidget);
   });
 
-  testWidgets('asks for an API key on first launch',
-      (WidgetTester tester) async {
+  testWidgets('asks for an API key on first launch', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(app(apiKey: null));
     await tester.pumpAndSettle();
 
@@ -116,8 +97,9 @@ void main() {
     expect(find.text('malaga, spain'), findsNothing);
   });
 
-  testWidgets('entering a valid key on first launch opens the app',
-      (WidgetTester tester) async {
+  testWidgets('entering a valid key on first launch opens the app', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(app(apiKey: null));
     await tester.pumpAndSettle();
 
@@ -128,8 +110,9 @@ void main() {
     expect(find.text('malaga, spain'), findsOneWidget);
   });
 
-  testWidgets('tapping settings shows a hint, long press opens settings',
-      (WidgetTester tester) async {
+  testWidgets('tapping settings shows a hint, long press opens settings', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(app(apiKey: 'test-key'));
     await tester.pumpAndSettle();
 
@@ -146,9 +129,10 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('saving a new key from settings persists it',
-      (WidgetTester tester) async {
-    final store = _MemorySettingsStore('old-key');
+  testWidgets('saving a new key from settings persists it', (
+    WidgetTester tester,
+  ) async {
+    final store = MemorySettingsStore('old-key');
     await tester.pumpWidget(appWith(store));
     await tester.pumpAndSettle();
 
@@ -163,8 +147,9 @@ void main() {
     expect(find.text('malaga, spain'), findsOneWidget);
   });
 
-  testWidgets('renders Simplified Chinese when selected',
-      (WidgetTester tester) async {
+  testWidgets('renders Simplified Chinese when selected', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(app(apiKey: 'test-key', languageCode: 'zh'));
     await tester.pumpAndSettle();
 
@@ -179,9 +164,10 @@ void main() {
     expect(find.text('周三'), findsOneWidget);
   });
 
-  testWidgets('changing the language is only persisted when saved',
-      (WidgetTester tester) async {
-    final store = _MemorySettingsStore('test-key');
+  testWidgets('changing the language is only persisted when saved', (
+    WidgetTester tester,
+  ) async {
+    final store = MemorySettingsStore('test-key');
     await tester.pumpWidget(appWith(store));
     await tester.pumpAndSettle();
 

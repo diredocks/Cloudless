@@ -30,9 +30,7 @@ class WeatherBottomNav extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(top: 10, bottom: bottomInset > 0 ? 0 : 8),
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: palette.hairline, width: 1),
-        ),
+        border: Border(top: BorderSide(color: palette.hairline, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -41,9 +39,7 @@ class WeatherBottomNav extends StatelessWidget {
           child: Row(
             children: WeatherTab.values.map((tab) {
               final selected = tab == currentTab;
-              final color = selected
-                  ? palette.foreground
-                  : palette.foreground.withValues(alpha: 0.6);
+              final color = selected ? palette.foreground : palette.muted;
               return Expanded(
                 child: InkResponse(
                   onTap: () => onSelected(tab),
@@ -55,11 +51,10 @@ class WeatherBottomNav extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         _label(l10n, tab),
-                        style: TextStyle(
+                        style: palette.text(
+                          size: 14,
+                          weight: selected ? FontWeight.w700 : FontWeight.w600,
                           color: color,
-                          fontSize: 14,
-                          fontWeight:
-                              selected ? FontWeight.w700 : FontWeight.w600,
                         ),
                       ),
                     ],
@@ -74,8 +69,8 @@ class WeatherBottomNav extends StatelessWidget {
   }
 
   String _label(AppLocalizations l10n, WeatherTab tab) => switch (tab) {
-        WeatherTab.today => l10n.navToday,
-        WeatherTab.search => l10n.navSearch,
-        WeatherTab.weekly => l10n.navWeekly,
-      };
+    WeatherTab.today => l10n.navToday,
+    WeatherTab.search => l10n.navSearch,
+    WeatherTab.weekly => l10n.navWeekly,
+  };
 }

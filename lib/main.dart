@@ -28,22 +28,61 @@ class CloudlessApp extends StatefulWidget {
   State<CloudlessApp> createState() => _CloudlessAppState();
 }
 
-class _CloudlessAppState extends State<CloudlessApp> {
+class _CloudlessAppState extends State<CloudlessApp>
+    with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
+  CaiyunApi? _api;
   String? _apiKey;
   String? _languageCode;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _apiKey = widget.store.apiKey;
     _languageCode = widget.store.languageCode;
+    _api = _createApi();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _api?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeLocales(List<Locale>? locales) {
+    super.didChangeLocales(locales);
+    // While following the system we rebuild the client so it picks up the new
+    // Caiyun `lang` value.
+    if (_overrideLanguage == null) _replaceApi();
+  }
+
+  CaiyunApi? _createApi() {
+    final key = _apiKey;
+    if (key == null || key.isEmpty) return null;
+    return CaiyunApi(
+      token: key,
+      language: _caiyunLanguage,
+      client: widget.client,
+    );
+  }
+
+  /// Swaps in a client built from the current key and language.
+  void _replaceApi() {
+    setState(() {
+      _api?.dispose();
+      _api = _createApi();
+    });
   }
 
   void _handleSaved(String key, String? languageCode) {
     setState(() {
+      _api?.dispose();
       _apiKey = key;
       _languageCode = languageCode;
+      _api = _createApi();
     });
   }
 
@@ -54,9 +93,7 @@ class _CloudlessAppState extends State<CloudlessApp> {
   /// system locale.
   AppLanguage get _language =>
       _overrideLanguage ??
-      resolveAppLanguage(
-        WidgetsBinding.instance.platformDispatcher.locale,
-      );
+      resolveAppLanguage(WidgetsBinding.instance.platformDispatcher.locale);
 
   /// Caiyun `lang` parameter for the active language.
   String get _caiyunLanguage => _language.caiyunLang;
@@ -76,23 +113,21 @@ class _CloudlessAppState extends State<CloudlessApp> {
 
   @override
   Widget build(BuildContext context) {
-    final apiKey = _apiKey;
+    final api = _api;
 
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: [
-        for (final language in kAppLanguages) language.locale,
-      ],
+      supportedLocales: [for (final language in kAppLanguages) language.locale],
       locale: _overrideLanguage?.locale,
       theme: ThemeData(
         useMaterial3: true,
         splashFactory: NoSplash.splashFactory,
         fontFamily: null,
       ),
-      home: (apiKey == null || apiKey.isEmpty)
+      home: api == null
           ? SettingsScreen(
               store: widget.store,
               client: widget.client,
@@ -101,12 +136,8 @@ class _CloudlessAppState extends State<CloudlessApp> {
               onSaved: _handleSaved,
             )
           : HomeShell(
-              key: ValueKey('$apiKey-${_language.locale.toLanguageTag()}'),
-              api: CaiyunApi(
-                token: apiKey,
-                language: _caiyunLanguage,
-                client: widget.client,
-              ),
+              key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
+              api: api,
               onOpenSettings: _openSettings,
             ),
     );

@@ -1,16 +1,10 @@
 import 'package:cloudless_app/l10n/app_language.dart';
 import 'package:cloudless_app/l10n/app_localizations.dart';
 import 'package:cloudless_app/l10n/weather_l10n.dart';
-import 'package:cloudless_app/models/weather.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const _malaga = CityLocation(
-  id: 'malaga',
-  name: 'malaga, spain',
-  longitude: -4.4214,
-  latitude: 36.7213,
-);
+import 'helpers.dart';
 
 void main() {
   test('every registered language has a generated ARB locale', () {
@@ -55,7 +49,7 @@ void main() {
       expect(l10n.skyconLabel('CLEAR_DAY'), isNotEmpty);
       expect(l10n.windLabel(10), isNotEmpty);
       expect(l10n.weekdayName('2026-10-14T00:00+02:00'), isNotEmpty);
-      expect(l10n.cityName(_malaga), isNotEmpty);
+      expect(l10n.cityName(malagaCity), isNotEmpty);
     }
   });
 }

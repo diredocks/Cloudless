@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/weather.dart';
-import '../theme/weather_palette.dart';
+import 'skycons.dart';
 
 /// Categories of failure the UI can translate on its own. The [detail] carries
 /// any service-provided text (already localized by the requested `lang`).
@@ -18,11 +18,7 @@ enum WeatherErrorKind {
 /// Raised when the Caiyun weather service cannot be reached or answers with an
 /// error.
 class WeatherApiException implements Exception {
-  const WeatherApiException(
-    this.kind, {
-    this.detail,
-    this.statusCode,
-  });
+  const WeatherApiException(this.kind, {this.detail, this.statusCode});
 
   final WeatherErrorKind kind;
 
@@ -40,12 +36,9 @@ class WeatherApiException implements Exception {
 ///
 /// Docs: https://docs.caiyunapp.com/weather-api/v2/v2.6/6-weather.html
 class CaiyunApi {
-  CaiyunApi({
-    required this.token,
-    this.language = 'en_US',
-    http.Client? client,
-  })  : _client = client ?? http.Client(),
-        _ownsClient = client == null;
+  CaiyunApi({required this.token, this.language = 'en_US', http.Client? client})
+    : _client = client ?? http.Client(),
+      _ownsClient = client == null;
 
   static const String _baseUrl = 'https://api.caiyunapp.com/v2.6';
 
@@ -58,10 +51,15 @@ class CaiyunApi {
   final bool _ownsClient;
 
   Future<WeatherBundle> fetch(CityLocation city) async {
-    final uri = Uri.parse(
-      '$_baseUrl/$token/${city.longitude},${city.latitude}/weather'
-      '?lang=$language&dailysteps=7&hourlysteps=24',
-    );
+    final uri =
+        Uri.parse('$_baseUrl/$token/${city.longitude},${city.latitude}/weather')
+            .replace(
+              queryParameters: <String, String>{
+                'lang': language,
+                'dailysteps': '7',
+                'hourlysteps': '24',
+              },
+            );
 
     final http.Response response;
     try {
@@ -161,14 +159,11 @@ class CaiyunMapper {
       uvDesc: _text(uv['desc']),
       rainProbability: probability,
       rainIntensity: intensity,
-      palette: paletteFor(skycon),
+      palette: skyconFor(skycon).palette,
     );
   }
 
-  static WeeklyWeather _weekly(
-    CityLocation city,
-    Map<String, dynamic> daily,
-  ) {
+  static WeeklyWeather _weekly(CityLocation city, Map<String, dynamic> daily) {
     final skycons = daily['skycon'];
     final temperatures = daily['temperature'];
     final days = <DailyForecast>[];
@@ -193,7 +188,7 @@ class CaiyunMapper {
       city: city,
       dominantSkycon: dominant,
       days: days,
-      palette: paletteFor(dominant),
+      palette: skyconFor(dominant).palette,
     );
   }
 
@@ -244,38 +239,6 @@ class CaiyunMapper {
       if (value is String) return value;
     }
     return 'CLEAR_DAY';
-  }
-
-  static WeatherPalette paletteFor(String skycon) {
-    switch (skycon) {
-      case 'CLEAR_DAY':
-        return WeatherPalette.orange;
-      case 'CLEAR_NIGHT':
-      case 'PARTLY_CLOUDY_NIGHT':
-        return WeatherPalette.navy;
-      case 'PARTLY_CLOUDY_DAY':
-      case 'FOG':
-      case 'WIND':
-      case 'LIGHT_SNOW':
-      case 'MODERATE_SNOW':
-      case 'HEAVY_SNOW':
-      case 'STORM_SNOW':
-        return WeatherPalette.sky;
-      case 'CLOUDY':
-      case 'LIGHT_RAIN':
-      case 'MODERATE_RAIN':
-      case 'HEAVY_RAIN':
-      case 'STORM_RAIN':
-        return WeatherPalette.blue;
-      case 'LIGHT_HAZE':
-      case 'MODERATE_HAZE':
-      case 'HEAVY_HAZE':
-      case 'DUST':
-      case 'SAND':
-        return WeatherPalette.orange;
-      default:
-        return WeatherPalette.sky;
-    }
   }
 
   static Map<String, dynamic> _map(Object? value) =>

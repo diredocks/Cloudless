@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
+import '../widgets/temperature_label.dart';
 
 class WeeklyScreen extends StatelessWidget {
   const WeeklyScreen({super.key, required this.weather});
@@ -27,20 +28,18 @@ class WeeklyScreen extends StatelessWidget {
                   SizedBox(height: constraints.maxHeight * 0.12),
                   Text(
                     l10n.cityName(weather.city),
-                    style: TextStyle(
-                      color: palette.foreground,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
+                    style: palette.text(
+                      size: 26,
+                      weight: FontWeight.w900,
                       letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     l10n.weeklyForecastSummary(weather.dominantSkycon),
-                    style: TextStyle(
-                      color: palette.foreground,
-                      fontSize: 44,
-                      fontWeight: FontWeight.w800,
+                    style: palette.text(
+                      size: 44,
+                      weight: FontWeight.w800,
                       height: 1.05,
                       letterSpacing: -1,
                     ),
@@ -97,19 +96,17 @@ class _WeekRow extends StatelessWidget {
               children: [
                 Text(
                   l10n.weekdayName(forecast.date),
-                  style: TextStyle(
-                    color: palette.foreground,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
+                  style: palette.text(
+                    size: 22,
+                    weight: FontWeight.w600,
                     height: 1.1,
                   ),
                 ),
                 Text(
                   l10n.skyconLabel(forecast.skycon),
-                  style: TextStyle(
-                    color: palette.foreground,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
+                  style: palette.text(
+                    size: 30,
+                    weight: FontWeight.w900,
                     height: 1.15,
                     letterSpacing: -0.5,
                   ),
@@ -117,49 +114,15 @@ class _WeekRow extends StatelessWidget {
               ],
             ),
           ),
-          _TempLabel(
-            temperature: forecast.temperature,
+          TemperatureLabel(
+            value: forecast.temperature,
             color: palette.foreground,
+            fontSize: 46,
+            degreeScale: 32 / 46,
+            letterSpacing: -2,
           ),
         ],
       ),
-    );
-  }
-}
-
-class _TempLabel extends StatelessWidget {
-  const _TempLabel({required this.temperature, required this.color});
-
-  final int temperature;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Text(
-          '$temperature',
-          style: TextStyle(
-            color: color,
-            fontSize: 46,
-            fontWeight: FontWeight.w900,
-            height: 1.0,
-            letterSpacing: -2,
-          ),
-        ),
-        Text(
-          '\u00B0',
-          style: TextStyle(
-            color: color,
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-            height: 1.0,
-          ),
-        ),
-      ],
     );
   }
 }

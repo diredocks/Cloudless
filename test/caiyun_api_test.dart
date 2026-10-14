@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:cloudless_app/data/caiyun_api.dart';
+import 'package:cloudless_app/data/skycons.dart';
 import 'package:cloudless_app/l10n/app_localizations.dart';
 import 'package:cloudless_app/l10n/weather_l10n.dart';
-import 'package:cloudless_app/models/weather.dart';
 import 'package:cloudless_app/theme/weather_palette.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,18 +11,12 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'fixtures.dart';
-
-const _malaga = CityLocation(
-  id: 'malaga',
-  name: 'malaga, spain',
-  longitude: -4.4214,
-  latitude: 36.7213,
-);
+import 'helpers.dart';
 
 void main() {
   group('CaiyunMapper', () {
     final bundle = CaiyunMapper.toBundle(
-      _malaga,
+      malagaCity,
       (jsonDecode(sampleWeatherResponse) as Map<String, dynamic>)['result']
           as Map<String, dynamic>,
     );
@@ -32,7 +26,10 @@ void main() {
       expect(current.city.name, 'malaga, spain');
       expect(current.temperature, 24);
       expect(current.skycon, 'CLEAR_DAY');
-      expect(current.apiSummary, 'Over the next two hours, no rain is expected');
+      expect(
+        current.apiSummary,
+        'Over the next two hours, no rain is expected',
+      );
       expect(current.feelsLike, 23);
       expect(current.comfortDesc, 'Pleasant');
       expect(current.windSpeed, 17);
@@ -55,26 +52,28 @@ void main() {
   });
 
   group('CaiyunApi.fetch', () {
-    test('builds a request from the city coordinates and maps the response',
-        () async {
-      late Uri requested;
-      final api = CaiyunApi(
-        token: 'test-token',
-        client: MockClient((request) async {
-          requested = request.url;
-          return http.Response(sampleWeatherResponse, 200);
-        }),
-      );
+    test(
+      'builds a request from the city coordinates and maps the response',
+      () async {
+        late Uri requested;
+        final api = CaiyunApi(
+          token: 'test-token',
+          client: MockClient((request) async {
+            requested = request.url;
+            return http.Response(sampleWeatherResponse, 200);
+          }),
+        );
 
-      final bundle = await api.fetch(_malaga);
+        final bundle = await api.fetch(malagaCity);
 
-      expect(
-        requested.path,
-        contains('/v2.6/test-token/-4.4214,36.7213/weather'),
-      );
-      expect(requested.queryParameters['lang'], 'en_US');
-      expect(bundle.current.temperature, 24);
-    });
+        expect(
+          requested.path,
+          contains('/v2.6/test-token/-4.4214,36.7213/weather'),
+        );
+        expect(requested.queryParameters['lang'], 'en_US');
+        expect(bundle.current.temperature, 24);
+      },
+    );
 
     test('requests the configured language', () async {
       late Uri requested;
@@ -87,7 +86,7 @@ void main() {
         }),
       );
 
-      await api.fetch(_malaga);
+      await api.fetch(malagaCity);
 
       expect(requested.queryParameters['lang'], 'zh_CN');
     });
@@ -99,7 +98,7 @@ void main() {
       );
 
       await expectLater(
-        api.fetch(_malaga),
+        api.fetch(malagaCity),
         throwsA(
           isA<WeatherApiException>()
               .having((e) => e.kind, 'kind', WeatherErrorKind.badStatus)
@@ -120,7 +119,7 @@ void main() {
       );
 
       await expectLater(
-        api.fetch(_malaga),
+        api.fetch(malagaCity),
         throwsA(
           isA<WeatherApiException>()
               .having((e) => e.kind, 'kind', WeatherErrorKind.serviceError)
@@ -162,21 +161,24 @@ void main() {
     });
 
     test('building the weekly summary from the dominant condition', () {
-      expect(en.weeklyForecastSummary('CLEAR_DAY'),
-          'mostly sunny for the next 7 days');
+      expect(
+        en.weeklyForecastSummary('CLEAR_DAY'),
+        'mostly sunny for the next 7 days',
+      );
       expect(zh.weeklyForecastSummary('CLEAR_DAY'), '未来 7 天以晴为主');
     });
 
     test('localizes city names', () {
-      expect(en.cityName(_malaga), 'malaga, spain');
-      expect(zh.cityName(_malaga), '马拉加，西班牙');
+      expect(en.cityName(malagaCity), 'malaga, spain');
+      expect(zh.cityName(malagaCity), '马拉加，西班牙');
     });
   });
 
-  group('CaiyunMapper.paletteFor', () {
+  group('skyconFor', () {
     test('handles known and unknown codes', () {
-      expect(CaiyunMapper.paletteFor('CLOUDY'), WeatherPalette.blue);
-      expect(CaiyunMapper.paletteFor('CLEAR_NIGHT'), WeatherPalette.navy);
+      expect(skyconFor('CLOUDY').palette, WeatherPalette.blue);
+      expect(skyconFor('CLEAR_NIGHT').palette, WeatherPalette.navy);
+      expect(skyconFor('WHATEVER').palette, WeatherPalette.sky);
     });
   });
 }

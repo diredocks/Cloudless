@@ -58,8 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  void _selectLanguage(String? code) =>
-      setState(() => _languageCode = code);
+  void _selectLanguage(String? code) => setState(() => _languageCode = code);
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
@@ -117,25 +116,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (widget.isFirstRun) ...[
                       const SizedBox(height: 40),
-                      Icon(
-                        Icons.settings,
-                        color: palette.foreground,
-                        size: 64,
-                      ),
+                      Icon(Icons.settings, color: palette.foreground, size: 64),
                       const SizedBox(height: 16),
                       Text(
                         l10n.firstRunTitle,
-                        style: TextStyle(
-                          color: palette.foreground,
-                          fontSize: 30,
-                          fontWeight: FontWeight.w900,
+                        style: palette.text(
+                          size: 30,
+                          weight: FontWeight.w900,
                           height: 1.1,
                           letterSpacing: -0.5,
                         ),
@@ -143,22 +139,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 8),
                       Text(
                         l10n.firstRunPrompt,
-                        style: TextStyle(
-                          color: palette.foreground.withValues(alpha: 0.8),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                        style: palette.text(
+                          size: 18,
+                          weight: FontWeight.w600,
                           height: 1.3,
+                          color: palette.foreground.withValues(alpha: 0.8),
                         ),
                       ),
                       const SizedBox(height: 40),
                     ],
                     Text(
                       l10n.apiKeyLabel,
-                      style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: palette.text(size: 17, weight: FontWeight.w700),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -167,35 +159,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       autocorrect: false,
                       enableSuggestions: false,
                       cursorColor: palette.foreground,
-                      style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: palette.text(size: 20, weight: FontWeight.w700),
                       decoration: InputDecoration(
                         hintText: l10n.apiKeyHint,
-                        hintStyle: TextStyle(
+                        hintStyle: palette.text(
+                          size: 20,
+                          weight: FontWeight.w700,
                           color: palette.foreground.withValues(alpha: 0.5),
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
                         ),
                         suffixIcon: IconButton(
-                          onPressed: () =>
-                              setState(() => _obscure = !_obscure),
+                          onPressed: () => setState(() => _obscure = !_obscure),
                           icon: Icon(
-                            _obscure
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            _obscure ? Icons.visibility_off : Icons.visibility,
                             color: palette.foreground,
                           ),
                         ),
                         enabledBorder: UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: palette.hairline, width: 1),
+                          borderSide: BorderSide(
+                            color: palette.hairline,
+                            width: 1,
+                          ),
                         ),
                         focusedBorder: UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: palette.foreground, width: 2),
+                          borderSide: BorderSide(
+                            color: palette.foreground,
+                            width: 2,
+                          ),
                         ),
                       ),
                     ),
@@ -203,21 +192,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 12),
                       Text(
                         _error!,
-                        style: TextStyle(
-                          color: palette.foreground,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: palette.text(size: 16, weight: FontWeight.w700),
                       ),
                     ],
                     const SizedBox(height: 32),
                     Text(
                       l10n.languageLabel,
-                      style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: palette.text(size: 17, weight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
                     _LanguageDropdown(
@@ -288,9 +269,7 @@ class _LanguageDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: palette.hairline, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: palette.hairline, width: 1)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -299,16 +278,9 @@ class _LanguageDropdown extends StatelessWidget {
           dropdownColor: palette.background,
           iconEnabledColor: palette.foreground,
           borderRadius: BorderRadius.circular(4),
-          style: TextStyle(
-            color: palette.foreground,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: palette.text(size: 20, weight: FontWeight.w700),
           items: [
-            DropdownMenuItem(
-              value: _system,
-              child: Text(l10n.languageSystem),
-            ),
+            DropdownMenuItem(value: _system, child: Text(l10n.languageSystem)),
             for (final language in kAppLanguages)
               DropdownMenuItem(
                 value: language.locale.languageCode,

@@ -12,11 +12,7 @@ import 'today_screen.dart';
 import 'weekly_screen.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({
-    super.key,
-    required this.api,
-    required this.onOpenSettings,
-  });
+  const HomeShell({super.key, required this.api, required this.onOpenSettings});
 
   final CaiyunApi api;
   final VoidCallback onOpenSettings;
@@ -34,12 +30,6 @@ class _HomeShellState extends State<HomeShell> {
   void initState() {
     super.initState();
     _bundles = _loadAll();
-  }
-
-  @override
-  void dispose() {
-    widget.api.dispose();
-    super.dispose();
   }
 
   Future<Map<String, WeatherBundle>> _loadAll() async {
@@ -104,11 +94,11 @@ class _HomeShellState extends State<HomeShell> {
       WeatherTab.today => TodayScreen(weather: bundle.current),
       WeatherTab.weekly => WeeklyScreen(weather: bundle.weekly),
       WeatherTab.search => SearchScreen(
-          palette: palette,
-          bundles: bundles,
-          selectedCityId: city.id,
-          onSelected: _selectCity,
-        ),
+        palette: palette,
+        bundles: bundles,
+        selectedCityId: city.id,
+        onSelected: _selectCity,
+      ),
     };
 
     return AnimatedContainer(
@@ -149,10 +139,7 @@ class _HomeShellState extends State<HomeShell> {
 }
 
 class _SettingsButton extends StatelessWidget {
-  const _SettingsButton({
-    required this.palette,
-    required this.onOpenSettings,
-  });
+  const _SettingsButton({required this.palette, required this.onOpenSettings});
 
   final WeatherPalette palette;
   final VoidCallback onOpenSettings;
@@ -219,11 +206,7 @@ class _StatusScreen extends StatelessWidget {
                     child: Text(
                       message,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: palette.text(size: 18, weight: FontWeight.w700),
                     ),
                   ),
                   if (onRetry != null) ...[
@@ -232,11 +215,7 @@ class _StatusScreen extends StatelessWidget {
                       onPressed: onRetry,
                       child: Text(
                         l10n.tryAgain,
-                        style: TextStyle(
-                          color: palette.foreground,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: palette.text(size: 16, weight: FontWeight.w800),
                       ),
                     ),
                   ],

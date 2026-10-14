@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import '../models/weather.dart';
 
 /// Cities the app can show. Caiyun does not expose forward geocoding, so the
@@ -35,3 +36,16 @@ const cityCatalog = <CityLocation>[
     latitude: 51.5072,
   ),
 ];
+
+/// Localized display name for [city], falling back to its catalog name.
+///
+/// Add the matching `city*` ARB entries when extending [cityCatalog].
+String localizedCityName(AppLocalizations l10n, CityLocation city) =>
+    switch (city.id) {
+      'malaga' => l10n.cityMalaga,
+      'dublin' => l10n.cityDublin,
+      'paris' => l10n.cityParis,
+      'reykjavik' => l10n.cityReykjavik,
+      'london' => l10n.cityLondon,
+      _ => city.name,
+    };

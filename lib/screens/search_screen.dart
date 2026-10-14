@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
+import '../widgets/temperature_label.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({
@@ -58,32 +59,31 @@ class _SearchScreenState extends State<SearchScreen> {
                     controller: _controller,
                     onChanged: (value) => setState(() => _query = value),
                     cursorColor: palette.foreground,
-                    style: TextStyle(
-                      color: palette.foreground,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: palette.text(size: 28, weight: FontWeight.w800),
                     decoration: InputDecoration(
                       hintText: l10n.searchCityHint,
-                      hintStyle: TextStyle(
-                        color: palette.foreground.withValues(alpha: 0.6),
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
+                      hintStyle: palette.text(
+                        size: 28,
+                        weight: FontWeight.w800,
+                        color: palette.muted,
                       ),
                       prefixIcon: Icon(
                         Icons.search,
                         color: palette.foreground,
                         size: 30,
                       ),
-                      prefixIconConstraints:
-                          const BoxConstraints(minWidth: 44),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 44),
                       enabledBorder: UnderlineInputBorder(
-                        borderSide:
-                            BorderSide(color: palette.hairline, width: 1),
+                        borderSide: BorderSide(
+                          color: palette.hairline,
+                          width: 1,
+                        ),
                       ),
                       focusedBorder: UnderlineInputBorder(
-                        borderSide:
-                            BorderSide(color: palette.foreground, width: 2),
+                        borderSide: BorderSide(
+                          color: palette.foreground,
+                          width: 2,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -92,9 +92,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   for (var i = 0; i < results.length; i++)
                     _CityRow(
                       city: results[i],
-                      temperature: widget.bundles[results[i].id]
-                          ?.current
-                          .temperature,
+                      temperature:
+                          widget.bundles[results[i].id]?.current.temperature,
                       palette: palette,
                       selected: results[i].id == widget.selectedCityId,
                       showTopBorder: i != 0,
@@ -149,23 +148,20 @@ class _CityRow extends StatelessWidget {
             Expanded(
               child: Text(
                 l10n.cityName(city),
-                style: TextStyle(
-                  color: palette.foreground,
-                  fontSize: 26,
-                  fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+                style: palette.text(
+                  size: 26,
+                  weight: selected ? FontWeight.w900 : FontWeight.w700,
                   letterSpacing: -0.5,
                 ),
               ),
             ),
             if (temperature != null)
-              Text(
-                '$temperature\u00B0',
-                style: TextStyle(
-                  color: palette.foreground,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1,
-                ),
+              TemperatureLabel(
+                value: temperature!,
+                color: palette.foreground,
+                fontSize: 34,
+                degreeScale: 1,
+                letterSpacing: -1,
               ),
           ],
         ),

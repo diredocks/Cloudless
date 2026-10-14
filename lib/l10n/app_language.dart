@@ -34,11 +34,7 @@ const kDefaultAppLanguage = AppLanguage(
 /// `test/app_language_test.dart` enforces.
 const kAppLanguages = <AppLanguage>[
   kDefaultAppLanguage,
-  AppLanguage(
-    locale: Locale('zh'),
-    caiyunLang: 'zh_CN',
-    nativeName: '简体中文',
-  ),
+  AppLanguage(locale: Locale('zh'), caiyunLang: 'zh_CN', nativeName: '简体中文'),
 ];
 
 /// The [AppLanguage] for a stored language code, or null when the code is
