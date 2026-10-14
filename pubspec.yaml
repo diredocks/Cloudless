@@ -38,6 +38,9 @@ dependencies:
   # HTTP client used to reach the Caiyun weather API.
   http: ^1.2.2
 
+  # Persists the user-provided API key across launches.
+  shared_preferences: ^2.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

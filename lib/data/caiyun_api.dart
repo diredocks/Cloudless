@@ -20,14 +20,15 @@ class WeatherApiException implements Exception {
 ///
 /// Docs: https://docs.caiyunapp.com/weather-api/v2/v2.6/6-weather.html
 class CaiyunApi {
-  CaiyunApi({http.Client? client}) : _client = client ?? http.Client();
+  CaiyunApi({required this.token, http.Client? client})
+      : _client = client ?? http.Client(),
+        _ownsClient = client == null;
 
-  final http.Client _client;
-
-  // Hard-coded token, as requested. Consider moving this to a secure store or
-  // build-time configuration before shipping.
-  static const String token = 'HyTVV5YAkoxlQ3Zd';
   static const String _baseUrl = 'https://api.caiyunapp.com/v2.6';
+
+  final String token;
+  final http.Client _client;
+  final bool _ownsClient;
 
   Future<WeatherBundle> fetch(CityLocation city) async {
     final uri = Uri.parse(
@@ -72,7 +73,9 @@ class CaiyunApi {
     return CaiyunMapper.toBundle(city, result);
   }
 
-  void dispose() => _client.close();
+  void dispose() {
+    if (_ownsClient) _client.close();
+  }
 }
 
 /// Translates a Caiyun `result` payload into the app's display models.

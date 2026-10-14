@@ -10,9 +10,14 @@ import 'today_screen.dart';
 import 'weekly_screen.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.api});
+  const HomeShell({
+    super.key,
+    required this.api,
+    required this.onOpenSettings,
+  });
 
   final CaiyunApi api;
+  final VoidCallback onOpenSettings;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -65,10 +70,14 @@ class _HomeShellState extends State<HomeShell> {
             return _StatusScreen(
               message: '${snapshot.error}',
               onRetry: _reload,
+              onOpenSettings: widget.onOpenSettings,
             );
           }
           if (!snapshot.hasData) {
-            return const _StatusScreen(message: 'loading weather\u2026');
+            return _StatusScreen(
+              message: 'loading weather\u2026',
+              onOpenSettings: widget.onOpenSettings,
+            );
           }
           return _buildWeather(snapshot.data!);
         },
@@ -101,18 +110,30 @@ class _HomeShellState extends State<HomeShell> {
       color: palette.background,
       child: SafeArea(
         bottom: false,
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: KeyedSubtree(
-                key: ValueKey('$_cityIndex-$_tab'),
-                child: body,
-              ),
+            Column(
+              children: [
+                Expanded(
+                  child: KeyedSubtree(
+                    key: ValueKey('$_cityIndex-$_tab'),
+                    child: body,
+                  ),
+                ),
+                WeatherBottomNav(
+                  palette: palette,
+                  currentTab: _tab,
+                  onSelected: (tab) => setState(() => _tab = tab),
+                ),
+              ],
             ),
-            WeatherBottomNav(
-              palette: palette,
-              currentTab: _tab,
-              onSelected: (tab) => setState(() => _tab = tab),
+            Positioned(
+              top: 8,
+              right: 12,
+              child: _SettingsButton(
+                palette: palette,
+                onOpenSettings: widget.onOpenSettings,
+              ),
             ),
           ],
         ),
@@ -121,10 +142,52 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
+class _SettingsButton extends StatelessWidget {
+  const _SettingsButton({
+    required this.palette,
+    required this.onOpenSettings,
+  });
+
+  final WeatherPalette palette;
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkResponse(
+      radius: 28,
+      onTap: () {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('long press to open settings'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      },
+      onLongPress: onOpenSettings,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Icon(
+          Icons.settings_outlined,
+          color: palette.foreground,
+          size: 26,
+        ),
+      ),
+    );
+  }
+}
+
 class _StatusScreen extends StatelessWidget {
-  const _StatusScreen({required this.message, this.onRetry});
+  const _StatusScreen({
+    required this.message,
+    required this.onOpenSettings,
+    this.onRetry,
+  });
 
   final String message;
+  final VoidCallback onOpenSettings;
   final VoidCallback? onRetry;
 
   @override
@@ -134,41 +197,53 @@ class _StatusScreen extends StatelessWidget {
       duration: const Duration(milliseconds: 350),
       color: palette.background,
       child: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (onRetry == null)
-                CircularProgressIndicator(color: palette.foreground),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: palette.foreground,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              if (onRetry != null) ...[
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: onRetry,
-                  child: Text(
-                    'try again',
-                    style: TextStyle(
-                      color: palette.foreground,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onRetry == null)
+                    CircularProgressIndicator(color: palette.foreground),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: palette.foreground,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ],
-          ),
+                  if (onRetry != null) ...[
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: onRetry,
+                      child: Text(
+                        'try again',
+                        style: TextStyle(
+                          color: palette.foreground,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 12,
+              child: _SettingsButton(
+                palette: palette,
+                onOpenSettings: onOpenSettings,
+              ),
+            ),
+          ],
         ),
       ),
     );

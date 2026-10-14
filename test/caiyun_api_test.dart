@@ -56,6 +56,7 @@ void main() {
         () async {
       late Uri requested;
       final api = CaiyunApi(
+        token: 'test-token',
         client: MockClient((request) async {
           requested = request.url;
           return http.Response(sampleWeatherResponse, 200);
@@ -66,7 +67,7 @@ void main() {
 
       expect(
         requested.path,
-        contains('/v2.6/${CaiyunApi.token}/-4.4214,36.7213/weather'),
+        contains('/v2.6/test-token/-4.4214,36.7213/weather'),
       );
       expect(requested.queryParameters['lang'], 'en_US');
       expect(bundle.current.temperature, 24);
@@ -74,6 +75,7 @@ void main() {
 
     test('throws when the service answers with a non-200 status', () async {
       final api = CaiyunApi(
+        token: 'test-token',
         client: MockClient((request) async => http.Response('boom', 500)),
       );
 
@@ -85,6 +87,7 @@ void main() {
 
     test('throws when the payload reports an error', () async {
       final api = CaiyunApi(
+        token: 'test-token',
         client: MockClient(
           (request) async => http.Response(
             '{"status":"failed","error":"token is invalid"}',
