@@ -84,7 +84,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       return;
     }
 
-    final settings = draft.toSettings(ref.read(settingsProvider));
+    final settings = draft.toSettings();
     await ref.read(settingsProvider.notifier).save(settings);
     if (!mounted) return;
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {

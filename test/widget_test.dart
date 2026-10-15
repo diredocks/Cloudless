@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloudless_app/data/local/cities_store.dart';
 import 'package:cloudless_app/data/local/settings_store.dart';
-import 'package:cloudless_app/models/city.dart';
 import 'package:cloudless_app/main.dart';
+import 'package:cloudless_app/models/city.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -25,8 +26,15 @@ void main() {
     return http.Response(sampleWeatherResponse, 200);
   });
 
-  Widget appWith(SettingsStore store, {http.Client? client}) =>
-      CloudlessApp(store: store, client: client ?? okClient());
+  Widget appWith(
+    SettingsStore settingsStore, {
+    CitiesStore? citiesStore,
+    http.Client? client,
+  }) => CloudlessApp(
+    settingsStore: settingsStore,
+    citiesStore: citiesStore ?? MemoryCitiesStore(),
+    client: client ?? okClient(),
+  );
 
   Widget app({String? apiKey, String? languageCode, http.Client? client}) =>
       appWith(MemorySettingsStore(apiKey, languageCode), client: client);
@@ -247,8 +255,14 @@ void main() {
   testWidgets('searches and adds a city from the results', (
     WidgetTester tester,
   ) async {
-    final store = MemorySettingsStore('test-key');
-    await tester.pumpWidget(appWith(store, client: routingClient()));
+    final cities = MemoryCitiesStore();
+    await tester.pumpWidget(
+      appWith(
+        MemorySettingsStore('test-key'),
+        citiesStore: cities,
+        client: routingClient(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('search'));
@@ -265,7 +279,7 @@ void main() {
     await tester.tap(find.text('北京，海淀'));
     await tester.pumpAndSettle();
 
-    expect(store.settings.cities.any((c) => c.id == '101010200'), isTrue);
+    expect(cities.cityList.cities.any((c) => c.id == '101010200'), isTrue);
 
     // Let the confirmation SnackBar time out so no timer outlives the test.
     await tester.pump(const Duration(seconds: 3));
@@ -322,8 +336,14 @@ void main() {
   });
 
   testWidgets('removes a city from the list', (WidgetTester tester) async {
-    final store = MemorySettingsStore('test-key');
-    await tester.pumpWidget(appWith(store, client: routingClient()));
+    final cities = MemoryCitiesStore();
+    await tester.pumpWidget(
+      appWith(
+        MemorySettingsStore('test-key'),
+        citiesStore: cities,
+        client: routingClient(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('search'));
@@ -338,8 +358,8 @@ void main() {
     await tester.tap(find.text('delete'));
     await tester.pumpAndSettle();
 
-    expect(store.settings.cities, hasLength(cityCatalog.length - 1));
-    expect(store.settings.cities.any((c) => c.id == '101010100'), isFalse);
+    expect(cities.cityList.cities, hasLength(cityCatalog.length - 1));
+    expect(cities.cityList.cities.any((c) => c.id == '101010100'), isFalse);
   });
 
   testWidgets('pull to refresh reloads the weather', (

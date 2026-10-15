@@ -6,7 +6,6 @@ import '../l10n/weather_l10n.dart';
 import '../models/city.dart';
 import '../providers/cities.dart';
 import '../providers/city_search.dart';
-import '../providers/settings.dart';
 import '../providers/weather.dart';
 import '../providers/weather_tab.dart';
 import '../theme/weather_palette.dart';
@@ -68,7 +67,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       return;
     }
 
-    await ref.read(settingsProvider.notifier).addCity(city);
+    await ref.read(cityListProvider.notifier).add(city);
     if (!mounted) return;
 
     // Reset the search so the newly saved city shows in the list.
@@ -103,7 +102,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
-    await ref.read(settingsProvider.notifier).removeCity(city);
+    await ref.read(cityListProvider.notifier).remove(city);
   }
 
   void _openCity(List<CityLocation> cities, CityLocation city) {
@@ -116,7 +115,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Selects [city] and returns to today, matching the picker flow.
   void _selectCity(CityLocation city) {
-    ref.read(settingsProvider.notifier).selectCity(city);
+    ref.read(cityListProvider.notifier).select(city);
     ref.read(weatherTabProvider.notifier).select(WeatherTab.today);
   }
 
@@ -126,7 +125,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final palette = widget.palette;
     final cities = ref.watch(appCitiesProvider);
     final selectedCityId = ref.watch(
-      settingsProvider.select((settings) => settings.selectedCityId),
+      cityListProvider.select((list) => list.selectedCityId),
     );
     final query = _query.trim();
     final results = ref.watch(citySearchResultsProvider(_query));

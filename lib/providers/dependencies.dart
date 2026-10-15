@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../data/local/cities_store.dart';
 import '../data/local/settings_store.dart';
 
 /// Root dependencies, overridden at startup (and by tests). They sit at the
@@ -9,6 +10,11 @@ import '../data/local/settings_store.dart';
 /// The store backing [settingsProvider].
 final settingsStoreProvider = Provider<SettingsStore>(
   (ref) => throw UnimplementedError('settingsStoreProvider must be overridden'),
+);
+
+/// The store backing [cityListProvider].
+final citiesStoreProvider = Provider<CitiesStore>(
+  (ref) => throw UnimplementedError('citiesStoreProvider must be overridden'),
 );
 
 /// The HTTP client shared by the network clients, or null to let each client

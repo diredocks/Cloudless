@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models/city.dart';
 import '../../models/settings.dart';
 
 /// Persistence for the user's [Settings].
@@ -22,8 +19,6 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   static const String _apiKeyKey = 'caiyun_api_key';
   static const String _languageKey = 'app_language';
   static const String _use24HourKey = 'use_24_hour';
-  static const String _citiesKey = 'saved_cities';
-  static const String _selectedCityKey = 'selected_city';
 
   final SharedPreferences _preferences;
   Settings _settings;
@@ -40,39 +35,13 @@ class SharedPreferencesSettingsStore implements SettingsStore {
     await _setOrRemove(_apiKeyKey, value.apiKey);
     await _setOrRemove(_languageKey, value.languageCode);
     await _preferences.setBool(_use24HourKey, value.use24Hour);
-    await _preferences.setStringList(_citiesKey, [
-      for (final city in value.cities) jsonEncode(city.toJson()),
-    ]);
-    await _setOrRemove(_selectedCityKey, value.selectedCityId);
   }
 
   static Settings _read(SharedPreferences preferences) => Settings(
     apiKey: _nonEmpty(preferences.getString(_apiKeyKey)),
     languageCode: _nonEmpty(preferences.getString(_languageKey)),
     use24Hour: preferences.getBool(_use24HourKey) ?? false,
-    cities: _decodeCities(preferences.getStringList(_citiesKey)),
-    selectedCityId: _nonEmpty(preferences.getString(_selectedCityKey)),
   );
-
-  /// Decodes the stored city list, skipping entries that are corrupt or have an
-  /// unexpected shape rather than losing the whole list.
-  static List<CityLocation> _decodeCities(List<String>? raw) {
-    if (raw == null) return const [];
-    final result = <CityLocation>[];
-    for (final entry in raw) {
-      try {
-        final decoded = jsonDecode(entry);
-        if (decoded is Map<String, dynamic>) {
-          result.add(CityLocation.fromJson(decoded));
-        }
-      } on FormatException {
-        // Skip corrupt entries rather than losing the whole list.
-      } on TypeError {
-        // Skip entries with unexpected shapes.
-      }
-    }
-    return result;
-  }
 
   static String? _nonEmpty(String? value) =>
       (value == null || value.isEmpty) ? null : value;

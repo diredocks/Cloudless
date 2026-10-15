@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import 'data/local/cities_store.dart';
 import 'data/local/settings_store.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
@@ -19,14 +20,21 @@ import 'theme/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  final store = await SharedPreferencesSettingsStore.load();
-  runApp(CloudlessApp(store: store));
+  final settingsStore = await SharedPreferencesSettingsStore.load();
+  final citiesStore = await SharedPreferencesCitiesStore.load();
+  runApp(CloudlessApp(settingsStore: settingsStore, citiesStore: citiesStore));
 }
 
 class CloudlessApp extends StatelessWidget {
-  const CloudlessApp({super.key, required this.store, this.client});
+  const CloudlessApp({
+    super.key,
+    required this.settingsStore,
+    required this.citiesStore,
+    this.client,
+  });
 
-  final SettingsStore store;
+  final SettingsStore settingsStore;
+  final CitiesStore citiesStore;
 
   /// Optional HTTP client, injected by tests.
   final http.Client? client;
@@ -38,7 +46,8 @@ class CloudlessApp extends StatelessWidget {
       // errors through its own retry UI instead.
       retry: (retryCount, error) => null,
       overrides: [
-        settingsStoreProvider.overrideWithValue(store),
+        settingsStoreProvider.overrideWithValue(settingsStore),
+        citiesStoreProvider.overrideWithValue(citiesStore),
         httpClientProvider.overrideWithValue(client),
       ],
       child: const _CloudlessAppView(),

@@ -1,15 +1,6 @@
-import 'city.dart';
-
-/// The user's persisted preferences: API credentials, display options and the
-/// saved city list.
+/// The user's persisted preferences: API credentials and display options.
 class Settings {
-  const Settings({
-    this.apiKey,
-    this.languageCode,
-    this.use24Hour = false,
-    this.cities = const [],
-    this.selectedCityId,
-  });
+  const Settings({this.apiKey, this.languageCode, this.use24Hour = false});
 
   /// Caiyun API token, or null when not configured yet.
   final String? apiKey;
@@ -20,29 +11,16 @@ class Settings {
   /// Whether hourly forecast times use a 24-hour clock; false means am/pm.
   final bool use24Hour;
 
-  /// The user's cities in display order. Empty when none have been saved yet.
-  final List<CityLocation> cities;
-
-  /// Id of the currently selected city, or null when unset.
-  final String? selectedCityId;
-
   /// Returns a copy with the given fields replaced.
   ///
   /// The nullable fields keep their current value when omitted; construct a
   /// [Settings] directly to reset one to null.
-  Settings copyWith({
-    String? apiKey,
-    String? languageCode,
-    bool? use24Hour,
-    List<CityLocation>? cities,
-    String? selectedCityId,
-  }) => Settings(
-    apiKey: apiKey ?? this.apiKey,
-    languageCode: languageCode ?? this.languageCode,
-    use24Hour: use24Hour ?? this.use24Hour,
-    cities: cities ?? this.cities,
-    selectedCityId: selectedCityId ?? this.selectedCityId,
-  );
+  Settings copyWith({String? apiKey, String? languageCode, bool? use24Hour}) =>
+      Settings(
+        apiKey: apiKey ?? this.apiKey,
+        languageCode: languageCode ?? this.languageCode,
+        use24Hour: use24Hour ?? this.use24Hour,
+      );
 }
 
 /// The fields edited on the settings screen, held separately from the
@@ -91,13 +69,10 @@ class SettingsDraft {
     use24Hour: use24Hour,
   );
 
-  /// The [Settings] to persist, keeping the saved cities and selection from
-  /// [base].
-  Settings toSettings(Settings base) => Settings(
+  /// The [Settings] to persist.
+  Settings toSettings() => Settings(
     apiKey: apiKey,
     languageCode: languageCode,
     use24Hour: use24Hour,
-    cities: base.cities,
-    selectedCityId: base.selectedCityId,
   );
 }

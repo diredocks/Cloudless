@@ -38,6 +38,24 @@ class CityLocation {
   int get hashCode => id.hashCode;
 }
 
+/// The user's saved cities in display order, plus the currently selected one.
+class CityList {
+  const CityList({this.cities = const [], this.selectedCityId});
+
+  /// The user's cities in display order. Empty when none have been saved yet.
+  final List<CityLocation> cities;
+
+  /// Id of the currently selected city, or null when unset.
+  final String? selectedCityId;
+
+  /// Returns a copy with the given fields replaced.
+  CityList copyWith({List<CityLocation>? cities, String? selectedCityId}) =>
+      CityList(
+        cities: cities ?? this.cities,
+        selectedCityId: selectedCityId ?? this.selectedCityId,
+      );
+}
+
 /// Default cities seeded on first run. Caiyun does not expose forward
 /// geocoding, so the search feature finds more cities through
 /// [CitySearchApi].
