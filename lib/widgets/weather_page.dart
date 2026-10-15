@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../theme/weather_palette.dart';
+import 'settings_button.dart';
+
 /// Shared page skeleton for the weather tabs.
 ///
 /// Lays out [children] in the app's padded, left-aligned column inside a
@@ -13,10 +16,22 @@ class WeatherPage extends StatelessWidget {
     super.key,
     required this.children,
     this.intrinsicHeight = false,
-  });
+    this.topGap,
+    this.palette,
+  }) : assert(
+         topGap == null || palette != null,
+         'A palette is required to render the top settings gap.',
+       );
 
   final List<Widget> Function(double maxHeight) children;
   final bool intrinsicHeight;
+
+  /// Fraction of the viewport height reserved above the content for the
+  /// settings button. When set, [palette] must also be provided.
+  final double? topGap;
+
+  /// Palette used by the settings button in the top gap.
+  final WeatherPalette? palette;
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +49,16 @@ class WeatherPage extends StatelessWidget {
   }
 
   Widget _padded(double maxHeight) {
+    final gap = topGap;
     final column = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: children(maxHeight),
+        children: [
+          if (gap != null)
+            SettingsPageGap(height: maxHeight * gap, palette: palette!),
+          ...children(maxHeight),
+        ],
       ),
     );
     return intrinsicHeight ? IntrinsicHeight(child: column) : column;

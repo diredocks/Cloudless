@@ -4,19 +4,13 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../widgets/metric_row.dart';
-import '../widgets/settings_button.dart';
 import '../widgets/temperature_label.dart';
 import '../widgets/weather_page.dart';
 
 class TodayScreen extends StatelessWidget {
-  const TodayScreen({
-    super.key,
-    required this.weather,
-    required this.onOpenSettings,
-  });
+  const TodayScreen({super.key, required this.weather});
 
   final CurrentWeather weather;
-  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +18,9 @@ class TodayScreen extends StatelessWidget {
     final palette = weather.palette;
     return WeatherPage(
       intrinsicHeight: true,
+      topGap: 0.14,
+      palette: palette,
       children: (maxHeight) => [
-        SettingsPageGap(
-          height: maxHeight * 0.14,
-          palette: palette,
-          onOpenSettings: onOpenSettings,
-        ),
         Text(
           l10n.cityName(weather.city),
           style: palette.text(

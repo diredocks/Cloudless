@@ -9,7 +9,6 @@ import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/hairline_row.dart';
-import '../widgets/settings_button.dart';
 import '../widgets/temperature_label.dart';
 import '../widgets/weather_page.dart';
 
@@ -24,7 +23,6 @@ class SearchScreen extends StatefulWidget {
     required this.onSelected,
     required this.onAdd,
     required this.onRemove,
-    required this.onOpenSettings,
   });
 
   final WeatherPalette palette;
@@ -42,7 +40,6 @@ class SearchScreen extends StatefulWidget {
   final Future<bool> Function(CityLocation city) onAdd;
 
   final ValueChanged<CityLocation> onRemove;
-  final VoidCallback onOpenSettings;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -174,12 +171,9 @@ class _SearchScreenState extends State<SearchScreen> {
     final query = _query.trim();
 
     return WeatherPage(
+      topGap: 0.10,
+      palette: palette,
       children: (maxHeight) => [
-        SettingsPageGap(
-          height: maxHeight * 0.10,
-          palette: palette,
-          onOpenSettings: widget.onOpenSettings,
-        ),
         _searchField(l10n, palette),
         const SizedBox(height: 20),
         if (query.isEmpty)

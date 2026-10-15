@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../theme/weather_palette.dart';
+import 'settings_scope.dart';
 
 /// A settings button docked in a weather page's top gap.
 ///
@@ -12,28 +13,27 @@ class SettingsPageGap extends StatelessWidget {
     super.key,
     required this.height,
     required this.palette,
-    required this.onOpenSettings,
   });
 
   /// Height of the empty gap the button sits at the top of.
   final double height;
 
   final WeatherPalette palette;
-  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
+          // The page adds 22px of horizontal padding; pull the button back by
+          // 10px so its right edge sits 12px from the screen, matching the
+          // status screen's margin.
           Positioned(
             top: 8,
-            right: 0,
-            child: SettingsButton(
-              palette: palette,
-              onOpenSettings: onOpenSettings,
-            ),
+            right: -10,
+            child: SettingsButton(palette: palette),
           ),
         ],
       ),
@@ -44,16 +44,11 @@ class SettingsPageGap extends StatelessWidget {
 /// The settings entry point shown over every weather screen.
 ///
 /// Tapping it briefly reveals the "long press" hint; a long press opens the
-/// settings screen via [onOpenSettings].
+/// settings screen via [SettingsScope].
 class SettingsButton extends StatefulWidget {
-  const SettingsButton({
-    super.key,
-    required this.palette,
-    required this.onOpenSettings,
-  });
+  const SettingsButton({super.key, required this.palette});
 
   final WeatherPalette palette;
-  final VoidCallback onOpenSettings;
 
   @override
   State<SettingsButton> createState() => _SettingsButtonState();
@@ -101,6 +96,7 @@ class _SettingsButtonState extends State<SettingsButton>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final openSettings = SettingsScope.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -125,7 +121,7 @@ class _SettingsButtonState extends State<SettingsButton>
         InkResponse(
           radius: 28,
           onTap: _showSettingsHint,
-          onLongPress: widget.onOpenSettings,
+          onLongPress: openSettings,
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Icon(

@@ -10,6 +10,7 @@ import 'l10n/app_localizations.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
 import 'theme/weather_palette.dart';
+import 'widgets/settings_scope.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -152,13 +153,15 @@ class _CloudlessAppState extends State<CloudlessApp>
               use24Hour: _use24Hour,
               onSaved: _handleSaved,
             )
-          : HomeShell(
-              key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
-              api: api,
-              citySearch: _citySearch,
-              store: widget.store,
-              onOpenSettings: _openSettings,
-              use24Hour: _use24Hour,
+          : SettingsScope(
+              openSettings: _openSettings,
+              child: HomeShell(
+                key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
+                api: api,
+                citySearch: _citySearch,
+                store: widget.store,
+                use24Hour: _use24Hour,
+              ),
             ),
     );
   }

@@ -13,12 +13,10 @@ class StatusScreen extends StatelessWidget {
   const StatusScreen({
     super.key,
     required this.message,
-    required this.onOpenSettings,
     this.onRetry,
   });
 
   final String message;
-  final VoidCallback onOpenSettings;
   final VoidCallback? onRetry;
 
   @override
@@ -37,10 +35,7 @@ class StatusScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8, right: 12),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: SettingsButton(
-                    palette: palette,
-                    onOpenSettings: onOpenSettings,
-                  ),
+                  child: SettingsButton(palette: palette),
                 ),
               ),
               Expanded(

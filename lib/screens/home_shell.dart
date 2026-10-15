@@ -21,14 +21,12 @@ class HomeShell extends StatefulWidget {
     required this.api,
     required this.citySearch,
     required this.store,
-    required this.onOpenSettings,
     required this.use24Hour,
   });
 
   final CaiyunApi api;
   final CitySearchApi citySearch;
   final SettingsStore store;
-  final VoidCallback onOpenSettings;
 
   /// Whether hourly labels use a 24-hour clock.
   final bool use24Hour;
@@ -81,14 +79,10 @@ class _HomeShellState extends State<HomeShell> {
       return StatusScreen(
         message: l10n.weatherErrorText(error),
         onRetry: _controller.load,
-        onOpenSettings: widget.onOpenSettings,
       );
     }
     if (_controller.loading) {
-      return StatusScreen(
-        message: l10n.loadingWeather,
-        onOpenSettings: widget.onOpenSettings,
-      );
+      return StatusScreen(message: l10n.loadingWeather);
     }
     return _buildWeather();
   }
@@ -105,18 +99,11 @@ class _HomeShellState extends State<HomeShell> {
     };
 
     final body = switch (controller.tab) {
-      WeatherTab.today => TodayScreen(
-        weather: bundle.current,
-        onOpenSettings: widget.onOpenSettings,
-      ),
-      WeatherTab.weekly => WeeklyScreen(
-        weather: bundle.weekly,
-        onOpenSettings: widget.onOpenSettings,
-      ),
+      WeatherTab.today => TodayScreen(weather: bundle.current),
+      WeatherTab.weekly => WeeklyScreen(weather: bundle.weekly),
       WeatherTab.hourly => HourlyScreen(
         weather: bundle.hourly,
         use24Hour: widget.use24Hour,
-        onOpenSettings: widget.onOpenSettings,
       ),
       WeatherTab.search => SearchScreen(
         palette: palette,
@@ -127,7 +114,6 @@ class _HomeShellState extends State<HomeShell> {
         onSelected: controller.selectCity,
         onAdd: controller.addCity,
         onRemove: controller.removeCity,
-        onOpenSettings: widget.onOpenSettings,
       ),
     };
 
