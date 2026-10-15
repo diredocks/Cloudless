@@ -10,11 +10,7 @@ import 'settings_button.dart';
 /// Shows a spinner when [onRetry] is null, otherwise a message and a retry
 /// action. The settings button stays available in both states.
 class StatusScreen extends StatelessWidget {
-  const StatusScreen({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const StatusScreen({super.key, required this.message, this.onRetry});
 
   final String message;
   final VoidCallback? onRetry;

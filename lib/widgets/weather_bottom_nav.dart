@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/weather_tab.dart';
 import '../theme/weather_palette.dart';
-
-enum WeatherTab { today, search, weekly, hourly }
 
 class WeatherBottomNav extends StatelessWidget {
   const WeatherBottomNav({
@@ -70,7 +69,9 @@ class WeatherBottomNav extends StatelessWidget {
                           _label(l10n, tab),
                           style: palette.text(
                             size: 14,
-                            weight: selected ? FontWeight.w700 : FontWeight.w600,
+                            weight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w600,
                             color: color,
                           ),
                         ),

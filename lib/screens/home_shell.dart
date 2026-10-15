@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../controllers/weather_controller.dart';
 import '../data/caiyun_api.dart';
 import '../data/city_search_api.dart';
 import '../data/settings_store.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/settings.dart';
+import '../models/weather_tab.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/status_screen.dart';
 import '../widgets/weather_bottom_nav.dart';
 import 'hourly_screen.dart';
 import 'search_screen.dart';
 import 'today_screen.dart';
-import 'weather_controller.dart';
 import 'weekly_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -68,9 +69,8 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _controller,
-      builder: (context, _) => Scaffold(
-        body: _content(AppLocalizations.of(context)),
-      ),
+      builder: (context, _) =>
+          Scaffold(body: _content(AppLocalizations.of(context))),
     );
   }
 

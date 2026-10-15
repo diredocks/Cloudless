@@ -185,9 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             suffixIcon: IconButton(
               onPressed: () => setState(() => _obscure = !_obscure),
-              icon: Icon(
-                _obscure ? Icons.visibility_off : Icons.visibility,
-              ),
+              icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
             ),
           ),
         ),
@@ -202,10 +200,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        _LanguageDropdown(
-          value: _languageCode,
-          onChanged: _selectLanguage,
-        ),
+        _LanguageDropdown(value: _languageCode, onChanged: _selectLanguage),
         const SizedBox(height: 32),
         Text(
           l10n.timeFormatLabel,

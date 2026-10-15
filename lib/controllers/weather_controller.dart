@@ -4,7 +4,7 @@ import '../data/caiyun_api.dart';
 import '../data/cities.dart';
 import '../data/settings_store.dart';
 import '../models/weather.dart';
-import '../widgets/weather_bottom_nav.dart';
+import '../models/weather_tab.dart';
 
 /// Owns the weather session state: the user's cities, the selected one, the
 /// active tab and the fetched bundles.

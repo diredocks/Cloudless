@@ -26,11 +26,7 @@ class SettingsPageGap extends StatelessWidget {
           // The page adds 22px of horizontal padding; pull the button back by
           // 10px so its right edge sits 12px from the screen, matching the
           // status screen's margin.
-          Positioned(
-            top: 8,
-            right: -10,
-            child: SettingsButton(color: color),
-          ),
+          Positioned(top: 8, right: -10, child: SettingsButton(color: color)),
         ],
       ),
     );
@@ -121,11 +117,7 @@ class _SettingsButtonState extends State<SettingsButton>
           onLongPress: openSettings,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Icon(
-              Icons.settings_outlined,
-              color: widget.color,
-              size: 26,
-            ),
+            child: Icon(Icons.settings_outlined, color: widget.color, size: 26),
           ),
         ),
       ],
