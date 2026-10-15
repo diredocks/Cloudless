@@ -11,6 +11,7 @@ import '../models/city.dart';
 import '../models/settings.dart';
 import '../providers/dependencies.dart';
 import '../providers/settings.dart';
+import '../providers/settings_form.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -26,8 +27,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _controller;
-  late String? _languageCode;
-  late bool _use24Hour;
   bool _obscure = true;
   bool _saving = false;
   String? _error;
@@ -35,10 +34,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(settingsProvider);
-    _controller = TextEditingController(text: settings.apiKey ?? '');
-    _languageCode = settings.languageCode;
-    _use24Hour = settings.use24Hour;
+    _controller = TextEditingController(
+      text: ref.read(settingsProvider).apiKey ?? '',
+    );
   }
 
   @override
@@ -46,8 +44,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _controller.dispose();
     super.dispose();
   }
-
-  void _selectLanguage(String? code) => setState(() => _languageCode = code);
 
   /// Checks [key] against the weather service. Returns the localized error to
   /// show, or null when the key works.
@@ -87,14 +83,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       return;
     }
 
-    final current = ref.read(settingsProvider);
-    final settings = Settings(
-      apiKey: key,
-      languageCode: _languageCode,
-      use24Hour: _use24Hour,
-      cities: current.cities,
-      selectedCityId: current.selectedCityId,
-    );
+    final settings = ref
+        .read(settingsFormProvider)
+        .toSettings(ref.read(settingsProvider), apiKey: key);
     await ref.read(settingsProvider.notifier).save(settings);
     if (!mounted) return;
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {
@@ -106,11 +97,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final draft = ref.watch(settingsFormProvider);
+    final form = ref.read(settingsFormProvider.notifier);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: appSystemUiOverlayStyle(scheme),
       child: Scaffold(
-        appBar: _appBar(l10n),
+        // No app bar during first run, so the prompt cannot be dismissed.
+        appBar: widget.isFirstRun
+            ? null
+            : AppBar(title: Text(l10n.settingsTitle)),
         body: SafeArea(
           child: Column(
             children: [
@@ -120,7 +116,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     horizontal: 22,
                     vertical: 16,
                   ),
-                  child: _form(l10n, scheme),
+                  child: _form(l10n, scheme, draft, form),
                 ),
               ),
               _bottomBar(l10n, scheme),
@@ -131,43 +127,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// No app bar during first run, so the prompt cannot be dismissed.
-  PreferredSizeWidget? _appBar(AppLocalizations l10n) {
-    if (widget.isFirstRun) return null;
-    return AppBar(title: Text(l10n.settingsTitle));
-  }
-
-  Widget _form(AppLocalizations l10n, ColorScheme scheme) {
+  Widget _form(
+    AppLocalizations l10n,
+    ColorScheme scheme,
+    SettingsDraft draft,
+    SettingsFormNotifier form,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ..._firstRunHeader(l10n, scheme),
-        Text(
-          l10n.apiKeyLabel,
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        _FieldLabel(text: l10n.apiKeyLabel),
         const SizedBox(height: 8),
         TextField(
           controller: _controller,
           obscureText: _obscure,
           autocorrect: false,
           enableSuggestions: false,
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: _optionStyle(scheme),
           decoration: InputDecoration(
             hintText: l10n.apiKeyHint,
-            hintStyle: TextStyle(
-              color: scheme.onSurfaceVariant,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+            hintStyle: _optionStyle(scheme)
+                .copyWith(color: scheme.onSurfaceVariant),
             suffixIcon: IconButton(
               onPressed: () => setState(() => _obscure = !_obscure),
               icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
@@ -176,29 +157,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         ..._errorNotice(scheme),
         const SizedBox(height: 32),
-        Text(
-          l10n.languageLabel,
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
+        _FieldLabel(text: l10n.languageLabel),
+        const SizedBox(height: 4),
+        _SettingsField(
+          child: _LanguageDropdown(
+            value: draft.languageCode,
+            onChanged: form.setLanguage,
           ),
         ),
-        const SizedBox(height: 4),
-        _LanguageDropdown(value: _languageCode, onChanged: _selectLanguage),
         const SizedBox(height: 32),
-        Text(
-          l10n.timeFormatLabel,
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        _FieldLabel(text: l10n.timeFormatLabel),
         const SizedBox(height: 4),
-        _TimeFormatToggle(
-          value: _use24Hour,
-          onChanged: (value) => setState(() => _use24Hour = value),
+        _SettingsField(
+          child: _TimeFormatToggle(
+            value: draft.use24Hour,
+            onChanged: form.setUse24Hour,
+          ),
         ),
       ],
     );
@@ -284,6 +258,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
+/// The bold value style shared by the editable fields.
+TextStyle _optionStyle(ColorScheme scheme) => TextStyle(
+  color: scheme.onSurface,
+  fontSize: 20,
+  fontWeight: FontWeight.w700,
+);
+
+/// A bold section heading above an editable field.
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+}
+
+/// The hairline-divided slot an editable field sits in.
+class _SettingsField extends StatelessWidget {
+  const _SettingsField({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
 class _TimeFormatToggle extends StatelessWidget {
   const _TimeFormatToggle({required this.value, required this.onChanged});
 
@@ -294,28 +317,16 @@ class _TimeFormatToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              value ? l10n.timeFormat24 : l10n.timeFormatAmPm,
-              style: TextStyle(
-                color: scheme.onSurface,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            value ? l10n.timeFormat24 : l10n.timeFormatAmPm,
+            style: _optionStyle(scheme),
           ),
-          Switch(value: value, onChanged: onChanged),
-        ],
-      ),
+        ),
+        Switch(value: value, onChanged: onChanged),
+      ],
     );
   }
 }
@@ -332,36 +343,24 @@ class _LanguageDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value ?? _system,
-          isExpanded: true,
-          dropdownColor: scheme.surfaceContainer,
-          iconEnabledColor: scheme.onSurfaceVariant,
-          borderRadius: BorderRadius.circular(4),
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-          items: [
-            DropdownMenuItem(value: _system, child: Text(l10n.languageSystem)),
-            for (final language in kAppLanguages)
-              DropdownMenuItem(
-                value: language.locale.languageCode,
-                child: Text(language.nativeName),
-              ),
-          ],
-          onChanged: (selection) =>
-              onChanged(selection == _system ? null : selection),
-        ),
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: value ?? _system,
+        isExpanded: true,
+        dropdownColor: scheme.surfaceContainer,
+        iconEnabledColor: scheme.onSurfaceVariant,
+        borderRadius: BorderRadius.circular(4),
+        style: _optionStyle(scheme),
+        items: [
+          DropdownMenuItem(value: _system, child: Text(l10n.languageSystem)),
+          for (final language in kAppLanguages)
+            DropdownMenuItem(
+              value: language.locale.languageCode,
+              child: Text(language.nativeName),
+            ),
+        ],
+        onChanged: (selection) =>
+            onChanged(selection == _system ? null : selection),
       ),
     );
   }

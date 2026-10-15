@@ -16,7 +16,14 @@ final settingsProvider = NotifierProvider<SettingsNotifier, Settings>(
 /// [SettingsStore]. The weather and search providers derive from it.
 class SettingsNotifier extends Notifier<Settings> {
   @override
-  Settings build() => ref.read(settingsStoreProvider).settings;
+  Settings build() {
+    // Seed the default catalog when nothing is saved, so the in-memory state
+    // is the single source of truth for the saved cities.
+    final stored = ref.read(settingsStoreProvider).settings;
+    return stored.cities.isEmpty
+        ? stored.copyWith(cities: cityCatalog)
+        : stored;
+  }
 
   /// Persists [next] and exposes it as the new state.
   Future<void> save(Settings next) => _write(next);
@@ -27,14 +34,14 @@ class SettingsNotifier extends Notifier<Settings> {
 
   /// Adds [city] to the saved list, unless it is already there.
   Future<void> addCity(CityLocation city) {
-    if (_cities.any((c) => c.id == city.id)) return Future.value();
-    return _write(state.copyWith(cities: [..._cities, city]));
+    if (state.cities.any((c) => c.id == city.id)) return Future.value();
+    return _write(state.copyWith(cities: [...state.cities, city]));
   }
 
   /// Removes [city], keeping at least one city and moving the selection to the
   /// first remaining city when the removed one was selected.
   Future<void> removeCity(CityLocation city) {
-    final cities = _cities;
+    final cities = state.cities;
     if (cities.length <= 1) return Future.value();
     final remaining = cities.where((c) => c.id != city.id).toList();
     final selectedCityId = state.selectedCityId == city.id
@@ -44,11 +51,6 @@ class SettingsNotifier extends Notifier<Settings> {
       state.copyWith(cities: remaining, selectedCityId: selectedCityId),
     );
   }
-
-  /// The saved cities, seeding the default catalog on first mutation so the
-  /// catalog becomes the persisted list once the user edits it.
-  List<CityLocation> get _cities =>
-      state.cities.isNotEmpty ? state.cities : cityCatalog;
 
   /// Updates the state optimistically, then persists it.
   Future<void> _write(Settings next) async {
