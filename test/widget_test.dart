@@ -255,6 +255,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '北京');
+    // Build once so the debounced search provider starts, then let it elapse.
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
 
@@ -268,6 +270,55 @@ void main() {
     // Let the confirmation SnackBar time out so no timer outlives the test.
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('a slow search cannot overwrite a newer one', (
+    WidgetTester tester,
+  ) async {
+    // The earlier query answers late; the newer one answers immediately.
+    const slowResponse =
+        '[{"city":"测试城","dis":"测试城","pro":"测试省","cid":"999999999","lat":"1.0","lng":"2.0"}]';
+    final client = MockClient((request) async {
+      if (request.url.host == 'decision-admin.tianqi.cn') {
+        if (request.url.queryParameters['key'] == '北京') {
+          return http.Response.bytes(
+            utf8.encode(sampleCitySearchResponse),
+            200,
+          );
+        }
+        await Future<void>.delayed(const Duration(seconds: 2));
+        return http.Response.bytes(utf8.encode(slowResponse), 200);
+      }
+      return http.Response(sampleWeatherResponse, 200);
+    });
+
+    await tester.pumpWidget(
+      appWith(MemorySettingsStore('test-key'), client: client),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('search'));
+    await tester.pumpAndSettle();
+
+    // First query: the debounce elapses and the slow request goes in flight.
+    await tester.enterText(find.byType(TextField), '北');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Second query replaces it and resolves quickly.
+    await tester.enterText(find.byType(TextField), '北京');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    expect(find.text('北京，海淀'), findsOneWidget);
+
+    // The stale first response finally arrives; it must not replace the view.
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('北京，海淀'), findsOneWidget);
+    expect(find.text('测试省，测试城'), findsNothing);
   });
 
   testWidgets('removes a city from the list', (WidgetTester tester) async {

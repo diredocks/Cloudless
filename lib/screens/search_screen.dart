@@ -1,113 +1,48 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/city_search_api.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
+import '../providers/city_search.dart';
+import '../providers/weather_controller.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/hairline_row.dart';
 import '../widgets/temperature_label.dart';
 import '../widgets/weather_page.dart';
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({
-    super.key,
-    required this.palette,
-    required this.bundles,
-    required this.cities,
-    required this.selectedCityId,
-    required this.searchApi,
-    required this.onSelected,
-    required this.onAdd,
-    required this.onRemove,
-  });
+class SearchScreen extends ConsumerStatefulWidget {
+  const SearchScreen({super.key, required this.palette});
 
   final WeatherPalette palette;
-  final Map<String, WeatherBundle> bundles;
-
-  /// The user's saved cities, in display order.
-  final List<CityLocation> cities;
-
-  final String selectedCityId;
-  final CitySearchApi searchApi;
-  final ValueChanged<CityLocation> onSelected;
-
-  /// Persists [city] and loads its weather. Resolves to true when the city is
-  /// now available.
-  final Future<bool> Function(CityLocation city) onAdd;
-
-  final ValueChanged<CityLocation> onRemove;
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _controller = TextEditingController();
-  Timer? _debounce;
-  int _requestId = 0;
   String _query = '';
-  List<CityLocation> _results = const [];
-  bool _searching = false;
-  bool _failed = false;
   String? _addingId;
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
-  bool _isSaved(CityLocation city) => widget.cities.any((c) => c.id == city.id);
+  bool _isSaved(List<CityLocation> cities, CityLocation city) =>
+      cities.any((c) => c.id == city.id);
 
   void _onQueryChanged(String value) {
     setState(() => _query = value);
-    _debounce?.cancel();
-
-    final query = value.trim();
-    if (query.isEmpty) {
-      _requestId++;
-      setState(() {
-        _results = const [];
-        _searching = false;
-        _failed = false;
-      });
-      return;
-    }
-
-    setState(() {
-      _searching = true;
-      _failed = false;
-    });
-    _debounce = Timer(const Duration(milliseconds: 300), () => _run(query));
-  }
-
-  Future<void> _run(String query) async {
-    final id = ++_requestId;
-    try {
-      final results = await widget.searchApi.search(query);
-      if (!mounted || id != _requestId) return;
-      setState(() {
-        _results = results;
-        _searching = false;
-      });
-    } on CitySearchException {
-      if (!mounted || id != _requestId) return;
-      setState(() {
-        _failed = true;
-        _searching = false;
-      });
-    }
   }
 
   Future<void> _add(CityLocation city) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _addingId = city.id);
-    final ok = await widget.onAdd(city);
+    final ok = await ref.read(weatherControllerProvider.notifier).addCity(city);
     if (!mounted) return;
 
     if (!ok) {
@@ -117,21 +52,19 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     // Reset the search so the newly saved city shows in the list.
-    _debounce?.cancel();
-    _requestId++;
     _controller.clear();
     setState(() {
       _addingId = null;
       _query = '';
-      _results = const [];
-      _searching = false;
-      _failed = false;
     });
   }
 
-  Future<void> _confirmRemove(CityLocation city) async {
+  Future<void> _confirmRemove(
+    List<CityLocation> cities,
+    CityLocation city,
+  ) async {
     final l10n = AppLocalizations.of(context);
-    if (widget.cities.length <= 1) {
+    if (cities.length <= 1) {
       showAppSnack(context, l10n.keepOneCity);
       return;
     }
@@ -153,22 +86,27 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
-    widget.onRemove(city);
+    await ref.read(weatherControllerProvider.notifier).removeCity(city);
   }
 
-  void _openCity(CityLocation city) {
-    if (!_isSaved(city)) {
+  void _openCity(List<CityLocation> cities, CityLocation city) {
+    if (!_isSaved(cities, city)) {
       _add(city);
       return;
     }
-    widget.onSelected(city);
+    ref.read(weatherControllerProvider.notifier).selectCity(city);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = widget.palette;
+    final session = ref.watch(weatherControllerProvider).value;
+    final cities = session?.cities ?? const <CityLocation>[];
+    final bundles = session?.bundles ?? const <String, WeatherBundle>{};
+    final selectedCityId = session?.selectedId;
     final query = _query.trim();
+    final results = ref.watch(citySearchResultsProvider(_query));
 
     return WeatherPage(
       topGap: 0.10,
@@ -177,9 +115,16 @@ class _SearchScreenState extends State<SearchScreen> {
         _searchField(l10n, palette),
         const SizedBox(height: 20),
         if (query.isEmpty)
-          ..._savedRows(palette)
+          ..._savedRows(palette, cities, bundles, selectedCityId)
         else
-          ..._resultRows(l10n, palette),
+          ..._resultRows(
+            l10n,
+            palette,
+            cities,
+            bundles,
+            selectedCityId,
+            results,
+          ),
         const SizedBox(height: 8),
       ],
     );
@@ -211,41 +156,56 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  List<Widget> _savedRows(WeatherPalette palette) {
+  List<Widget> _savedRows(
+    WeatherPalette palette,
+    List<CityLocation> cities,
+    Map<String, WeatherBundle> bundles,
+    String? selectedCityId,
+  ) {
     return [
-      for (var i = 0; i < widget.cities.length; i++)
+      for (var i = 0; i < cities.length; i++)
         _CityRow(
-          city: widget.cities[i],
-          temperature: widget.bundles[widget.cities[i].id]?.current.temperature,
+          city: cities[i],
+          temperature: bundles[cities[i].id]?.current.temperature,
           palette: palette,
-          selected: widget.cities[i].id == widget.selectedCityId,
+          selected: cities[i].id == selectedCityId,
           showTopBorder: i != 0,
-          onTap: () => widget.onSelected(widget.cities[i]),
-          onLongPress: () => _confirmRemove(widget.cities[i]),
+          onTap: () => ref
+              .read(weatherControllerProvider.notifier)
+              .selectCity(cities[i]),
+          onLongPress: () => _confirmRemove(cities, cities[i]),
         ),
     ];
   }
 
-  List<Widget> _resultRows(AppLocalizations l10n, WeatherPalette palette) {
-    if (_searching && _results.isEmpty) {
+  List<Widget> _resultRows(
+    AppLocalizations l10n,
+    WeatherPalette palette,
+    List<CityLocation> cities,
+    Map<String, WeatherBundle> bundles,
+    String? selectedCityId,
+    AsyncValue<List<CityLocation>> results,
+  ) {
+    if (results.isLoading && !results.hasValue) {
       return [_status(l10n.searchingCities, palette)];
     }
-    if (_failed) {
+    if (results.hasError) {
       return [_status(l10n.searchFailed, palette)];
     }
-    if (_results.isEmpty) {
+    final matches = results.value ?? const <CityLocation>[];
+    if (matches.isEmpty) {
       return [_status(l10n.noMatchingCities, palette)];
     }
     return [
-      for (var i = 0; i < _results.length; i++)
+      for (var i = 0; i < matches.length; i++)
         _CityRow(
-          city: _results[i],
-          temperature: widget.bundles[_results[i].id]?.current.temperature,
+          city: matches[i],
+          temperature: bundles[matches[i].id]?.current.temperature,
           palette: palette,
-          selected: _results[i].id == widget.selectedCityId,
+          selected: matches[i].id == selectedCityId,
           showTopBorder: i != 0,
-          onTap: () => _openCity(_results[i]),
-          trailing: _resultTrailing(_results[i], palette),
+          onTap: () => _openCity(cities, matches[i]),
+          trailing: _resultTrailing(cities, matches[i], palette),
         ),
     ];
   }
@@ -264,7 +224,11 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _resultTrailing(CityLocation city, WeatherPalette palette) {
+  Widget _resultTrailing(
+    List<CityLocation> cities,
+    CityLocation city,
+    WeatherPalette palette,
+  ) {
     if (_addingId == city.id) {
       return SizedBox(
         width: 22,
@@ -275,7 +239,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       );
     }
-    if (_isSaved(city)) {
+    if (_isSaved(cities, city)) {
       return Icon(Icons.check, color: palette.muted, size: 24);
     }
     return Icon(Icons.add, color: palette.foreground, size: 26);

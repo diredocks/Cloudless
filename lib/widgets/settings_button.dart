@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import 'settings_scope.dart';
+import '../screens/settings_screen.dart';
 
 /// A settings button docked in a weather page's top gap.
 ///
@@ -36,7 +36,7 @@ class SettingsPageGap extends StatelessWidget {
 /// The settings entry point shown over every weather screen.
 ///
 /// Tapping it briefly reveals the "long press" hint; a long press opens the
-/// settings screen via [SettingsScope].
+/// settings screen.
 class SettingsButton extends StatefulWidget {
   const SettingsButton({super.key, required this.color});
 
@@ -89,7 +89,6 @@ class _SettingsButtonState extends State<SettingsButton>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final openSettings = SettingsScope.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -114,7 +113,9 @@ class _SettingsButtonState extends State<SettingsButton>
         InkResponse(
           radius: 28,
           onTap: _showSettingsHint,
-          onLongPress: openSettings,
+          onLongPress: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Icon(Icons.settings_outlined, color: widget.color, size: 26),

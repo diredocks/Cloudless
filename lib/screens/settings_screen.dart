@@ -1,45 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/caiyun_api.dart';
 import '../data/cities.dart';
-import '../data/settings_store.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/settings.dart';
+import '../providers/services.dart';
 import '../theme/app_theme.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({
-    super.key,
-    required this.store,
-    required this.settings,
-    required this.onSaved,
-    this.client,
-    this.isFirstRun = false,
-  });
-
-  final SettingsStore store;
-
-  /// The settings being edited, used as the starting point.
-  final Settings settings;
-
-  /// Called after the settings have been persisted.
-  final ValueChanged<Settings> onSaved;
-
-  final http.Client? client;
+class SettingsScreen extends ConsumerStatefulWidget {
+  const SettingsScreen({super.key, this.isFirstRun = false});
 
   /// When true the screen is shown as the app root (no saved key yet) and
   /// cannot be dismissed.
   final bool isFirstRun;
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _controller;
   late String? _languageCode;
   late bool _use24Hour;
@@ -50,9 +33,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.settings.apiKey ?? '');
-    _languageCode = widget.settings.languageCode;
-    _use24Hour = widget.settings.use24Hour;
+    final settings = ref.read(settingsProvider);
+    _controller = TextEditingController(text: settings.apiKey ?? '');
+    _languageCode = settings.languageCode;
+    _use24Hour = settings.use24Hour;
   }
 
   @override
@@ -67,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// show, or null when the key works.
   Future<String?> _validateKey(String key) async {
     final l10n = AppLocalizations.of(context);
-    final api = CaiyunApi(token: key, client: widget.client);
+    final api = CaiyunApi(token: key, client: ref.read(httpClientProvider));
     try {
       await api.fetch(cityCatalog.first);
       return null;
@@ -101,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
 
-    final current = widget.store.settings;
+    final current = ref.read(settingsProvider);
     final settings = Settings(
       apiKey: key,
       languageCode: _languageCode,
@@ -109,9 +93,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       cities: current.cities,
       selectedCityId: current.selectedCityId,
     );
-    await widget.store.save(settings);
+    await ref.read(settingsProvider.notifier).save(settings);
     if (!mounted) return;
-    widget.onSaved(settings);
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }

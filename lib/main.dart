@@ -1,18 +1,16 @@
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-import 'data/caiyun_api.dart';
-import 'data/city_search_api.dart';
 import 'data/settings_store.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
-import 'models/settings.dart';
+import 'providers/services.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
 import 'theme/app_theme.dart';
-import 'widgets/settings_scope.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +19,7 @@ Future<void> main() async {
   runApp(CloudlessApp(store: store));
 }
 
-class CloudlessApp extends StatefulWidget {
+class CloudlessApp extends StatelessWidget {
   const CloudlessApp({super.key, required this.store, this.client});
 
   final SettingsStore store;
@@ -30,108 +28,70 @@ class CloudlessApp extends StatefulWidget {
   final http.Client? client;
 
   @override
-  State<CloudlessApp> createState() => _CloudlessAppState();
+  Widget build(BuildContext context) {
+    return ProviderScope(
+      // Riverpod retries failed providers automatically; the app surfaces
+      // errors through its own retry UI instead.
+      retry: (retryCount, error) => null,
+      overrides: [
+        settingsStoreProvider.overrideWithValue(store),
+        httpClientProvider.overrideWithValue(client),
+      ],
+      child: const _CloudlessAppView(),
+    );
+  }
 }
 
-class _CloudlessAppState extends State<CloudlessApp>
-    with WidgetsBindingObserver {
-  final _navigatorKey = GlobalKey<NavigatorState>();
-  late final CitySearchApi _citySearch;
-  CaiyunApi? _api;
-  late Settings _settings;
+class _CloudlessAppView extends ConsumerStatefulWidget {
+  const _CloudlessAppView();
 
+  @override
+  ConsumerState<_CloudlessAppView> createState() => _CloudlessAppViewState();
+}
+
+class _CloudlessAppViewState extends ConsumerState<_CloudlessAppView>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _settings = widget.store.settings;
-    _citySearch = CitySearchApi(client: widget.client);
-    _api = _createApi();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _citySearch.dispose();
-    _api?.dispose();
     super.dispose();
   }
 
   @override
   void didChangeLocales(List<Locale>? locales) {
     super.didChangeLocales(locales);
-    // While following the system we rebuild the client so it picks up the new
-    // Caiyun `lang` value.
-    if (_overrideLanguage == null) _replaceApi();
-  }
-
-  CaiyunApi? _createApi() {
-    final key = _settings.apiKey;
-    if (key == null || key.isEmpty) return null;
-    return CaiyunApi(
-      token: key,
-      language: _caiyunLanguage,
-      client: widget.client,
-    );
-  }
-
-  /// Swaps in a client built from the current key and language.
-  void _replaceApi() {
-    setState(() {
-      _api?.dispose();
-      _api = _createApi();
-    });
-  }
-
-  void _handleSaved(Settings settings) {
-    setState(() {
-      _api?.dispose();
-      _settings = settings;
-      _api = _createApi();
-    });
-  }
-
-  /// The explicitly selected language, or null when following the system.
-  AppLanguage? get _overrideLanguage =>
-      appLanguageForCode(_settings.languageCode);
-
-  /// Language actually in effect: the override, or the best match for the
-  /// system locale.
-  AppLanguage get _language =>
-      _overrideLanguage ??
-      resolveAppLanguage(WidgetsBinding.instance.platformDispatcher.locale);
-
-  /// Caiyun `lang` parameter for the active language.
-  String get _caiyunLanguage => _language.caiyunLang;
-
-  Future<void> _openSettings() {
-    return _navigatorKey.currentState!.push(
-      MaterialPageRoute<void>(
-        builder: (_) => SettingsScreen(
-          store: widget.store,
-          client: widget.client,
-          settings: _settings,
-          onSaved: _handleSaved,
-        ),
-      ),
-    );
+    // While following the system, refresh the resolved language so the Caiyun
+    // client is rebuilt with the new `lang` value.
+    if (ref.read(settingsProvider).languageCode == null) {
+      ref.invalidate(appLanguageProvider);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final overrideLanguage = appLanguageForCode(
+      ref.watch(settingsProvider.select((settings) => settings.languageCode)),
+    );
+    final hasApiKey = ref.watch(caiyunApiProvider) != null;
+
     // Adopts the system's Material You palette when available, so settings and
     // other palette-free UI follow the system theme. Falls back to a seeded
     // scheme on platforms that do not provide dynamic colors.
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) => MaterialApp(
         onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-        navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: [
           for (final language in kAppLanguages) language.locale,
         ],
-        locale: _overrideLanguage?.locale,
+        locale: overrideLanguage?.locale,
         theme: buildAppTheme(
           schemeFromSeed(lightDynamic?.primary, Brightness.light),
         ),
@@ -139,33 +99,9 @@ class _CloudlessAppState extends State<CloudlessApp>
           schemeFromSeed(darkDynamic?.primary, Brightness.dark),
         ),
         themeMode: ThemeMode.system,
-        home: _home(),
-      ),
-    );
-  }
-
-  /// The root screen: settings until an API key is saved, then the weather
-  /// shell wrapped in a [SettingsScope].
-  Widget _home() {
-    final api = _api;
-    final settings = _settings;
-    if (api == null) {
-      return SettingsScreen(
-        store: widget.store,
-        client: widget.client,
-        isFirstRun: true,
-        settings: settings,
-        onSaved: _handleSaved,
-      );
-    }
-    return SettingsScope(
-      openSettings: _openSettings,
-      child: HomeShell(
-        key: ValueKey('${settings.apiKey}-${_language.locale.toLanguageTag()}'),
-        api: api,
-        citySearch: _citySearch,
-        store: widget.store,
-        settings: settings,
+        home: hasApiKey
+            ? const HomeShell()
+            : const SettingsScreen(isFirstRun: true),
       ),
     );
   }
