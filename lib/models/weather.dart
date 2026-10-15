@@ -58,6 +58,22 @@ class DailyForecast {
   final int temperature;
 }
 
+class HourlyForecast {
+  const HourlyForecast({
+    required this.datetime,
+    required this.skycon,
+    required this.temperature,
+    required this.rainProbability,
+  });
+
+  /// ISO-8601 date-time as returned by Caiyun.
+  final String datetime;
+
+  final String skycon;
+  final int temperature;
+  final int rainProbability;
+}
+
 class WeeklyWeather {
   const WeeklyWeather({
     required this.city,
@@ -72,6 +88,23 @@ class WeeklyWeather {
   final String dominantSkycon;
 
   final List<DailyForecast> days;
+  final WeatherPalette palette;
+}
+
+class HourlyWeather {
+  const HourlyWeather({
+    required this.city,
+    required this.dominantSkycon,
+    required this.hours,
+    required this.palette,
+  });
+
+  final CityLocation city;
+
+  /// Most frequent sky condition across the forecast window.
+  final String dominantSkycon;
+
+  final List<HourlyForecast> hours;
   final WeatherPalette palette;
 }
 
@@ -111,9 +144,11 @@ class WeatherBundle {
     required this.city,
     required this.current,
     required this.weekly,
+    required this.hourly,
   });
 
   final CityLocation city;
   final CurrentWeather current;
   final WeeklyWeather weekly;
+  final HourlyWeather hourly;
 }

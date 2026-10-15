@@ -49,6 +49,17 @@ void main() {
       expect(weekly.days.first.temperature, 25);
       expect(weekly.dominantSkycon, 'CLEAR_DAY');
     });
+
+    test('maps the hourly block into the hourly forecast', () {
+      final hourly = bundle.hourly;
+      expect(hourly.city.name, '北京');
+      expect(hourly.hours, hasLength(4));
+      expect(hourly.hours.first.datetime, '2026-10-14T21:00+02:00');
+      expect(hourly.hours.first.skycon, 'CLEAR_DAY');
+      expect(hourly.hours.first.temperature, 25);
+      expect(hourly.hours.first.rainProbability, 10);
+      expect(hourly.dominantSkycon, 'CLEAR_DAY');
+    });
   });
 
   group('CaiyunApi.fetch', () {
@@ -166,6 +177,28 @@ void main() {
         'mostly sunny for the next 7 days',
       );
       expect(zh.weeklyForecastSummary('CLEAR_DAY'), '未来 7 天以晴为主');
+    });
+
+    test('building the hourly summary from the dominant condition', () {
+      expect(
+        en.hourlyForecastSummary('CLEAR_DAY'),
+        'mostly sunny for the next 24 hours',
+      );
+      expect(zh.hourlyForecastSummary('CLEAR_DAY'), '未来 24 小时以晴为主');
+    });
+
+    test('formats hourly timestamps as 12- or 24-hour clocks', () {
+      expect(en.hourLabel('2026-10-14T15:00+02:00', use24Hour: false), '3 pm');
+      expect(en.hourLabel('2026-10-14T00:00+02:00', use24Hour: false), '12 am');
+      expect(en.hourLabel('2026-10-14T12:00+02:00', use24Hour: false), '12 pm');
+      expect(en.hourLabel('2026-10-14T09:00+02:00', use24Hour: false), '9 am');
+      expect(en.hourLabel('2026-10-14T15:00+02:00', use24Hour: true), '15:00');
+      expect(zh.hourLabel('2026-10-14T15:00+02:00', use24Hour: true), '15 时');
+      expect(
+        zh.hourLabel('2026-10-14T15:00+02:00', use24Hour: false),
+        '下午 3 时',
+      );
+      expect(en.hourLabel('bogus', use24Hour: false), '');
     });
 
     test('localizes city names', () {

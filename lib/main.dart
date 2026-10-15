@@ -37,6 +37,7 @@ class _CloudlessAppState extends State<CloudlessApp>
   CaiyunApi? _api;
   String? _apiKey;
   String? _languageCode;
+  bool _use24Hour = false;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _CloudlessAppState extends State<CloudlessApp>
     WidgetsBinding.instance.addObserver(this);
     _apiKey = widget.store.apiKey;
     _languageCode = widget.store.languageCode;
+    _use24Hour = widget.store.use24Hour;
     _citySearch = CitySearchApi(client: widget.client);
     _api = _createApi();
   }
@@ -82,11 +84,12 @@ class _CloudlessAppState extends State<CloudlessApp>
     });
   }
 
-  void _handleSaved(String key, String? languageCode) {
+  void _handleSaved(String key, String? languageCode, bool use24Hour) {
     setState(() {
       _api?.dispose();
       _apiKey = key;
       _languageCode = languageCode;
+      _use24Hour = use24Hour;
       _api = _createApi();
     });
   }
@@ -110,6 +113,7 @@ class _CloudlessAppState extends State<CloudlessApp>
           store: widget.store,
           client: widget.client,
           languageCode: _languageCode,
+          use24Hour: _use24Hour,
           onSaved: _handleSaved,
         ),
       ),
@@ -145,6 +149,7 @@ class _CloudlessAppState extends State<CloudlessApp>
               client: widget.client,
               isFirstRun: true,
               languageCode: _languageCode,
+              use24Hour: _use24Hour,
               onSaved: _handleSaved,
             )
           : HomeShell(
@@ -153,6 +158,7 @@ class _CloudlessAppState extends State<CloudlessApp>
               citySearch: _citySearch,
               store: widget.store,
               onOpenSettings: _openSettings,
+              use24Hour: _use24Hour,
             ),
     );
   }

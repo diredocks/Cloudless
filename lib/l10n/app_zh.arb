@@ -6,6 +6,7 @@
   "navToday": "今天",
   "navSearch": "搜索",
   "navWeekly": "一周",
+  "navHourly": "逐小时",
 
   "loadingWeather": "正在加载天气…",
   "tryAgain": "重试",
@@ -37,6 +38,10 @@
 
   "languageLabel": "语言",
   "languageSystem": "跟随系统",
+
+  "timeFormatLabel": "时间格式",
+  "timeFormat24": "24 小时制",
+  "timeFormatAmPm": "12 小时制",
 
   "windCalm": "无风",
   "windBreezy": "微风",
@@ -80,6 +85,12 @@
   "weekdaySunday": "周日",
 
   "weeklySummary": "未来 7 天以{condition}为主",
+
+  "hourlySummary": "未来 24 小时以{condition}为主",
+
+  "hourAm": "上午 {hour} 时",
+  "hourPm": "下午 {hour} 时",
+  "hour24": "{hour} 时",
 
   "errorUnreachable": "无法连接到天气服务",
   "errorBadStatus": "天气服务返回错误 {status}",

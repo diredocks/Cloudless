@@ -6,6 +6,7 @@
   "navToday": "today",
   "navSearch": "search",
   "navWeekly": "weekly",
+  "navHourly": "hourly",
 
   "loadingWeather": "loading weather…",
   "tryAgain": "try again",
@@ -44,6 +45,10 @@
 
   "languageLabel": "language",
   "languageSystem": "system",
+
+  "timeFormatLabel": "time format",
+  "timeFormat24": "24-hour",
+  "timeFormatAmPm": "am/pm",
 
   "windCalm": "calm",
   "windBreezy": "breezy",
@@ -91,6 +96,40 @@
     "placeholders": {
       "condition": {
         "type": "String"
+      }
+    }
+  },
+
+  "hourlySummary": "mostly {condition} for the next 24 hours",
+  "@hourlySummary": {
+    "placeholders": {
+      "condition": {
+        "type": "String"
+      }
+    }
+  },
+
+  "hourAm": "{hour} am",
+  "@hourAm": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "hourPm": "{hour} pm",
+  "@hourPm": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "hour24": "{hour}:00",
+  "@hour24": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
       }
     }
   },

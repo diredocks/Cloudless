@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/weather_palette.dart';
 
-enum WeatherTab { today, search, weekly }
+enum WeatherTab { today, search, weekly, hourly }
 
 class WeatherBottomNav extends StatelessWidget {
   const WeatherBottomNav({
@@ -21,6 +21,7 @@ class WeatherBottomNav extends StatelessWidget {
     WeatherTab.today: Icons.wb_sunny_outlined,
     WeatherTab.search: Icons.search,
     WeatherTab.weekly: Icons.calendar_month_outlined,
+    WeatherTab.hourly: Icons.schedule,
   };
 
   @override
@@ -89,5 +90,6 @@ class WeatherBottomNav extends StatelessWidget {
     WeatherTab.today => l10n.navToday,
     WeatherTab.search => l10n.navSearch,
     WeatherTab.weekly => l10n.navWeekly,
+    WeatherTab.hourly => l10n.navHourly,
   };
 }

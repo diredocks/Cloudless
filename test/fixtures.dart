@@ -25,8 +25,23 @@ const sampleWeatherResponse = '''
     },
     "hourly": {
       "description": "Partly cloudy",
+      "temperature": [
+        {"datetime": "2026-10-14T21:00+02:00", "value": 24.5},
+        {"datetime": "2026-10-14T22:00+02:00", "value": 25.1},
+        {"datetime": "2026-10-14T23:00+02:00", "value": 23.8},
+        {"datetime": "2026-10-15T00:00+02:00", "value": 22.0}
+      ],
+      "skycon": [
+        {"datetime": "2026-10-14T21:00+02:00", "value": "CLEAR_DAY"},
+        {"datetime": "2026-10-14T22:00+02:00", "value": "CLEAR_DAY"},
+        {"datetime": "2026-10-14T23:00+02:00", "value": "PARTLY_CLOUDY_DAY"},
+        {"datetime": "2026-10-15T00:00+02:00", "value": "CLEAR_NIGHT"}
+      ],
       "precipitation": [
-        {"datetime": "2026-10-14T15:00+02:00", "value": 0.0, "probability": 10}
+        {"datetime": "2026-10-14T21:00+02:00", "value": 0.0, "probability": 10},
+        {"datetime": "2026-10-14T22:00+02:00", "value": 0.0, "probability": 20},
+        {"datetime": "2026-10-14T23:00+02:00", "value": 0.0, "probability": 30},
+        {"datetime": "2026-10-15T00:00+02:00", "value": 0.0, "probability": 40}
       ]
     },
     "daily": {

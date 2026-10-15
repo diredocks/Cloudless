@@ -15,6 +15,11 @@ abstract class SettingsStore {
 
   Future<void> setLanguageCode(String? value);
 
+  /// Whether hourly forecast times use a 24-hour clock; false means am/pm.
+  bool get use24Hour;
+
+  Future<void> setUse24Hour(bool value);
+
   /// The user's cities in display order. Empty when the user has not saved any
   /// yet, in which case the caller seeds the defaults.
   List<CityLocation> get cities;
@@ -33,6 +38,7 @@ class SharedPreferencesSettingsStore implements SettingsStore {
 
   static const String _apiKeyKey = 'caiyun_api_key';
   static const String _languageKey = 'app_language';
+  static const String _use24HourKey = 'use_24_hour';
   static const String _citiesKey = 'saved_cities';
   static const String _selectedCityKey = 'selected_city';
 
@@ -65,6 +71,13 @@ class SharedPreferencesSettingsStore implements SettingsStore {
       await _preferences.setString(_languageKey, value);
     }
   }
+
+  @override
+  bool get use24Hour => _preferences.getBool(_use24HourKey) ?? false;
+
+  @override
+  Future<void> setUse24Hour(bool value) =>
+      _preferences.setBool(_use24HourKey, value);
 
   @override
   List<CityLocation> get cities {

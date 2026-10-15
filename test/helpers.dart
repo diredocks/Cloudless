@@ -7,10 +7,15 @@ final CityLocation beijingCity = cityCatalog.first;
 
 /// In-memory [SettingsStore] for widget tests.
 class MemorySettingsStore implements SettingsStore {
-  MemorySettingsStore([this._apiKey, this._languageCode]);
+  MemorySettingsStore([
+    this._apiKey,
+    this._languageCode,
+    this._use24Hour = false,
+  ]);
 
   String? _apiKey;
   String? _languageCode;
+  bool _use24Hour;
   List<CityLocation> _cities = const [];
   String? _selectedCityId;
 
@@ -25,6 +30,12 @@ class MemorySettingsStore implements SettingsStore {
 
   @override
   Future<void> setLanguageCode(String? value) async => _languageCode = value;
+
+  @override
+  bool get use24Hour => _use24Hour;
+
+  @override
+  Future<void> setUse24Hour(bool value) async => _use24Hour = value;
 
   @override
   List<CityLocation> get cities => _cities;

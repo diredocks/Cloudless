@@ -56,6 +56,41 @@ void main() {
     expect(find.text('wednesday'), findsOneWidget);
   });
 
+  testWidgets('can switch to the hourly tab', (WidgetTester tester) async {
+    await tester.pumpWidget(app(apiKey: 'test-key'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('hourly'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('mostly sunny for the next 24 hours'), findsOneWidget);
+    expect(find.text('9 pm'), findsOneWidget);
+    expect(find.byType(Divider), findsOneWidget);
+  });
+
+  testWidgets('toggling the hour format updates the hourly tab', (
+    WidgetTester tester,
+  ) async {
+    final store = MemorySettingsStore('test-key');
+    await tester.pumpWidget(appWith(store));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('hourly'));
+    await tester.pumpAndSettle();
+    expect(find.text('9 pm'), findsOneWidget);
+
+    await tester.longPress(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('save'));
+    await tester.pumpAndSettle();
+
+    expect(store.use24Hour, isTrue);
+    expect(find.text('21:00'), findsOneWidget);
+    expect(find.text('9 pm'), findsNothing);
+  });
+
   testWidgets('switching city from search returns to today', (
     WidgetTester tester,
   ) async {

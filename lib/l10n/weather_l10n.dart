@@ -55,6 +55,25 @@ extension WeatherLocalizations on AppLocalizations {
   String weeklyForecastSummary(String dominantSkycon) =>
       weeklySummary(skyconLabel(dominantSkycon));
 
+  String hourlyForecastSummary(String dominantSkycon) =>
+      hourlySummary(skyconLabel(dominantSkycon));
+
+  /// Hour-of-day label from an ISO-8601 timestamp such as
+  /// `2026-10-14T15:00+02:00`, using a 24-hour clock when [use24Hour] is true
+  /// and am/pm otherwise. The hour is read straight from the string so the
+  /// timestamp's own offset is preserved rather than converted to the device's
+  /// time zone.
+  String hourLabel(String isoDateTime, {required bool use24Hour}) {
+    if (isoDateTime.length < 13) return '';
+    final hour = int.tryParse(isoDateTime.substring(11, 13));
+    if (hour == null) return '';
+    if (use24Hour) return hour24(hour);
+    if (hour == 0) return hourAm(12);
+    if (hour < 12) return hourAm(hour);
+    if (hour == 12) return hourPm(12);
+    return hourPm(hour - 12);
+  }
+
   String weatherError(WeatherApiException error) => switch (error.kind) {
     WeatherErrorKind.unreachable => errorUnreachable,
     WeatherErrorKind.badStatus => errorBadStatus(error.statusCode ?? 0),

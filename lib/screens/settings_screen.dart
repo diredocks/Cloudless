@@ -17,19 +17,24 @@ class SettingsScreen extends StatefulWidget {
     required this.onSaved,
     this.client,
     this.languageCode,
+    this.use24Hour = false,
     this.isFirstRun = false,
   });
 
   final SettingsStore store;
 
-  /// Called after the settings have been persisted with the new API key and
-  /// language override (`null` follows the system).
-  final void Function(String apiKey, String? languageCode) onSaved;
+  /// Called after the settings have been persisted with the new API key,
+  /// language override (`null` follows the system) and hour format.
+  final void Function(String apiKey, String? languageCode, bool use24Hour)
+  onSaved;
 
   final http.Client? client;
 
   /// Current language code (see [kAppLanguages]) or null to follow the system.
   final String? languageCode;
+
+  /// Whether hourly times use a 24-hour clock.
+  final bool use24Hour;
 
   /// When true the screen is shown as the app root (no saved key yet) and
   /// cannot be dismissed.
@@ -42,6 +47,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _controller;
   late String? _languageCode;
+  late bool _use24Hour;
   bool _obscure = true;
   bool _saving = false;
   String? _error;
@@ -51,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _controller = TextEditingController(text: widget.store.apiKey ?? '');
     _languageCode = widget.languageCode;
+    _use24Hour = widget.use24Hour;
   }
 
   @override
@@ -101,8 +108,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     await widget.store.setApiKey(key);
     await widget.store.setLanguageCode(_languageCode);
+    await widget.store.setUse24Hour(_use24Hour);
     if (!mounted) return;
-    widget.onSaved(key, _languageCode);
+    widget.onSaved(key, _languageCode, _use24Hour);
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
@@ -231,6 +239,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         palette: palette,
                         onChanged: _selectLanguage,
                       ),
+                      const SizedBox(height: 32),
+                      Text(
+                        l10n.timeFormatLabel,
+                        style: palette.text(size: 17, weight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      _TimeFormatToggle(
+                        value: _use24Hour,
+                        palette: palette,
+                        onChanged: (value) =>
+                            setState(() => _use24Hour = value),
+                      ),
                     ],
                   ),
                 ),
@@ -271,6 +291,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TimeFormatToggle extends StatelessWidget {
+  const _TimeFormatToggle({
+    required this.value,
+    required this.palette,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final WeatherPalette palette;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: palette.hairline, width: 1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              value ? l10n.timeFormat24 : l10n.timeFormatAmPm,
+              style: palette.text(size: 20, weight: FontWeight.w700),
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: palette.background,
+            activeTrackColor: palette.foreground,
+            inactiveThumbColor: palette.background,
+            inactiveTrackColor: palette.foreground.withValues(alpha: 0.4),
+          ),
+        ],
       ),
     );
   }

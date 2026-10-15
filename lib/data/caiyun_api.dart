@@ -94,11 +94,13 @@ class CaiyunMapper {
   ) {
     final realtime = _map(result['realtime']);
     final daily = _map(result['daily']);
+    final hourly = _map(result['hourly']);
 
     return WeatherBundle(
       city: city,
       current: _current(city, realtime, result, daily),
       weekly: _weekly(city, daily),
+      hourly: _hourly(city, hourly),
     );
   }
 
@@ -173,6 +175,37 @@ class CaiyunMapper {
     );
   }
 
+  static HourlyWeather _hourly(CityLocation city, Map<String, dynamic> hourly) {
+    final temperatures = hourly['temperature'];
+    final skycons = hourly['skycon'];
+    final precipitations = hourly['precipitation'];
+    final hours = <HourlyForecast>[];
+
+    if (temperatures is List) {
+      for (var i = 0; i < temperatures.length; i++) {
+        final entry = _map(temperatures[i]);
+        final datetime = entry['datetime'] as String?;
+        if (datetime == null) continue;
+        hours.add(
+          HourlyForecast(
+            datetime: datetime,
+            skycon: _skyconAt(skycons, i),
+            temperature: _round(entry['value']),
+            rainProbability: _probabilityAt(precipitations, i),
+          ),
+        );
+      }
+    }
+
+    final dominant = _dominantSkycon(skycons);
+    return HourlyWeather(
+      city: city,
+      dominantSkycon: dominant,
+      hours: hours,
+      palette: skyconFor(dominant).palette,
+    );
+  }
+
   /// Rain probability (0-100) for the next hour, falling back to today's daily
   /// probability.
   static int _probability(
@@ -220,6 +253,14 @@ class CaiyunMapper {
       if (value is String) return value;
     }
     return 'CLEAR_DAY';
+  }
+
+  static int _probabilityAt(Object? list, int index) {
+    if (list is List && index < list.length) {
+      final value = _map(list[index])['probability'];
+      if (value is num) return value.round();
+    }
+    return 0;
   }
 
   static Map<String, dynamic> _map(Object? value) =>
