@@ -127,15 +127,23 @@ void main() {
     await tester.pumpWidget(app(apiKey: 'test-key'));
     await tester.pumpAndSettle();
 
+    final hintOpacity = find.ancestor(
+      of: find.text('long press to open settings'),
+      matching: find.byType(Opacity),
+    );
+    expect(tester.widget<Opacity>(hintOpacity).opacity, 0);
+
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('long press to open settings'), findsOneWidget);
+    expect(tester.widget<Opacity>(hintOpacity).opacity, 1);
 
     await tester.longPress(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
     expect(find.text('API key'), findsOneWidget);
 
-    // Let the hint SnackBar time out so no timer outlives the test.
+    // Let the hint animation finish so it fades out.
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
   });
