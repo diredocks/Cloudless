@@ -14,6 +14,9 @@ class SettingsFormNotifier extends Notifier<SettingsDraft> {
   @override
   SettingsDraft build() => SettingsDraft.from(ref.watch(settingsProvider));
 
+  /// Sets the API key being edited.
+  void setApiKey(String key) => state = state.withApiKey(key);
+
   /// Sets the preferred language, or null to follow the system.
   void setLanguage(String? code) => state = state.withLanguage(code);
 

@@ -8,7 +8,6 @@ import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/city.dart';
-import '../models/settings.dart';
 import '../providers/dependencies.dart';
 import '../providers/settings.dart';
 import '../providers/settings_form.dart';
@@ -35,7 +34,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: ref.read(settingsProvider).apiKey ?? '',
+      text: ref.read(settingsFormProvider).apiKey,
     );
   }
 
@@ -62,7 +61,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
-    final key = _controller.text.trim();
+    final draft = ref.read(settingsFormProvider);
+    final key = draft.apiKey.trim();
     if (key.isEmpty) {
       setState(() => _error = l10n.errorEnterApiKey);
       return;
@@ -83,9 +83,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       return;
     }
 
-    final settings = ref
-        .read(settingsFormProvider)
-        .toSettings(ref.read(settingsProvider), apiKey: key);
+    final settings = draft.toSettings(ref.read(settingsProvider));
     await ref.read(settingsProvider.notifier).save(settings);
     if (!mounted) return;
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {
@@ -97,8 +95,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final draft = ref.watch(settingsFormProvider);
-    final form = ref.read(settingsFormProvider.notifier);
+    // Watch only the option fields: the API key is driven by the text field's
+    // controller, so typing must not rebuild the form.
+    final (languageCode, use24Hour) = ref.watch(
+      settingsFormProvider.select(
+        (draft) => (draft.languageCode, draft.use24Hour),
+      ),
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: appSystemUiOverlayStyle(scheme),
@@ -116,7 +119,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     horizontal: 22,
                     vertical: 16,
                   ),
-                  child: _form(l10n, scheme, draft, form),
+                  child: _form(l10n, scheme, languageCode, use24Hour),
                 ),
               ),
               _bottomBar(l10n, scheme),
@@ -130,9 +133,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _form(
     AppLocalizations l10n,
     ColorScheme scheme,
-    SettingsDraft draft,
-    SettingsFormNotifier form,
+    String? languageCode,
+    bool use24Hour,
   ) {
+    final form = ref.read(settingsFormProvider.notifier);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -141,6 +145,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: _controller,
+          onChanged: form.setApiKey,
           obscureText: _obscure,
           autocorrect: false,
           enableSuggestions: false,
@@ -161,7 +166,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SizedBox(height: 4),
         _SettingsField(
           child: _LanguageDropdown(
-            value: draft.languageCode,
+            value: languageCode,
             onChanged: form.setLanguage,
           ),
         ),
@@ -170,7 +175,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SizedBox(height: 4),
         _SettingsField(
           child: _TimeFormatToggle(
-            value: draft.use24Hour,
+            value: use24Hour,
             onChanged: form.setUse24Hour,
           ),
         ),
