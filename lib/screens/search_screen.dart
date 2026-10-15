@@ -113,22 +113,23 @@ class _SearchScreenState extends State<SearchScreen> {
     final ok = await widget.onAdd(city);
     if (!mounted) return;
 
-    if (ok) {
-      // Reset the search so the newly saved city shows in the list.
-      _debounce?.cancel();
-      _requestId++;
-      _controller.clear();
-      setState(() {
-        _addingId = null;
-        _query = '';
-        _results = const [];
-        _searching = false;
-        _failed = false;
-      });
-    } else {
+    if (!ok) {
       setState(() => _addingId = null);
       showAppSnack(context, l10n.cityAddFailed);
+      return;
     }
+
+    // Reset the search so the newly saved city shows in the list.
+    _debounce?.cancel();
+    _requestId++;
+    _controller.clear();
+    setState(() {
+      _addingId = null;
+      _query = '';
+      _results = const [];
+      _searching = false;
+      _failed = false;
+    });
   }
 
   Future<void> _confirmRemove(CityLocation city) async {
@@ -159,11 +160,11 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _openCity(CityLocation city) {
-    if (_isSaved(city)) {
-      widget.onSelected(city);
-    } else {
+    if (!_isSaved(city)) {
       _add(city);
+      return;
     }
+    widget.onSelected(city);
   }
 
   @override

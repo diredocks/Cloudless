@@ -148,22 +148,21 @@ class CaiyunMapper {
 
   static WeeklyWeather _weekly(CityLocation city, Map<String, dynamic> daily) {
     final skycons = daily['skycon'];
-    final temperatures = daily['temperature'];
+    final rawTemperatures = daily['temperature'];
+    final temperatures = rawTemperatures is List ? rawTemperatures : const [];
     final days = <DailyForecast>[];
 
-    if (temperatures is List) {
-      for (var i = 0; i < temperatures.length; i++) {
-        final entry = _map(temperatures[i]);
-        final date = entry['date'] as String?;
-        if (date == null) continue;
-        days.add(
-          DailyForecast(
-            date: date,
-            skycon: _skyconAt(skycons, i),
-            temperature: _round(entry['max']),
-          ),
-        );
-      }
+    for (var i = 0; i < temperatures.length; i++) {
+      final entry = _map(temperatures[i]);
+      final date = entry['date'] as String?;
+      if (date == null) continue;
+      days.add(
+        DailyForecast(
+          date: date,
+          skycon: _skyconAt(skycons, i),
+          temperature: _round(entry['max']),
+        ),
+      );
     }
 
     final dominant = _dominantSkycon(skycons);
@@ -176,25 +175,24 @@ class CaiyunMapper {
   }
 
   static HourlyWeather _hourly(CityLocation city, Map<String, dynamic> hourly) {
-    final temperatures = hourly['temperature'];
+    final rawTemperatures = hourly['temperature'];
+    final temperatures = rawTemperatures is List ? rawTemperatures : const [];
     final skycons = hourly['skycon'];
     final precipitations = hourly['precipitation'];
     final hours = <HourlyForecast>[];
 
-    if (temperatures is List) {
-      for (var i = 0; i < temperatures.length; i++) {
-        final entry = _map(temperatures[i]);
-        final datetime = entry['datetime'] as String?;
-        if (datetime == null) continue;
-        hours.add(
-          HourlyForecast(
-            datetime: datetime,
-            skycon: _skyconAt(skycons, i),
-            temperature: _round(entry['value']),
-            rainProbability: _probabilityAt(precipitations, i),
-          ),
-        );
-      }
+    for (var i = 0; i < temperatures.length; i++) {
+      final entry = _map(temperatures[i]);
+      final datetime = entry['datetime'] as String?;
+      if (datetime == null) continue;
+      hours.add(
+        HourlyForecast(
+          datetime: datetime,
+          skycon: _skyconAt(skycons, i),
+          temperature: _round(entry['value']),
+          rainProbability: _probabilityAt(precipitations, i),
+        ),
+      );
     }
 
     final dominant = _dominantSkycon(skycons);

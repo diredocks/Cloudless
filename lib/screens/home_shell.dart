@@ -69,29 +69,28 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _controller,
-      builder: (context, _) {
-        final l10n = AppLocalizations.of(context);
-        final error = _controller.error;
-
-        final Widget content;
-        if (error != null) {
-          content = StatusScreen(
-            message: l10n.weatherErrorText(error),
-            onRetry: _controller.load,
-            onOpenSettings: widget.onOpenSettings,
-          );
-        } else if (_controller.loading) {
-          content = StatusScreen(
-            message: l10n.loadingWeather,
-            onOpenSettings: widget.onOpenSettings,
-          );
-        } else {
-          content = _buildWeather();
-        }
-
-        return Scaffold(body: content);
-      },
+      builder: (context, _) => Scaffold(
+        body: _content(AppLocalizations.of(context)),
+      ),
     );
+  }
+
+  Widget _content(AppLocalizations l10n) {
+    final error = _controller.error;
+    if (error != null) {
+      return StatusScreen(
+        message: l10n.weatherErrorText(error),
+        onRetry: _controller.load,
+        onOpenSettings: widget.onOpenSettings,
+      );
+    }
+    if (_controller.loading) {
+      return StatusScreen(
+        message: l10n.loadingWeather,
+        onOpenSettings: widget.onOpenSettings,
+      );
+    }
+    return _buildWeather();
   }
 
   Widget _buildWeather() {

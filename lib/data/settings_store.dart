@@ -67,9 +67,9 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   Future<void> setLanguageCode(String? value) async {
     if (value == null || value.isEmpty) {
       await _preferences.remove(_languageKey);
-    } else {
-      await _preferences.setString(_languageKey, value);
+      return;
     }
+    await _preferences.setString(_languageKey, value);
   }
 
   @override
@@ -115,8 +115,8 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   Future<void> setSelectedCityId(String? value) async {
     if (value == null || value.isEmpty) {
       await _preferences.remove(_selectedCityKey);
-    } else {
-      await _preferences.setString(_selectedCityKey, value);
+      return;
     }
+    await _preferences.setString(_selectedCityKey, value);
   }
 }
