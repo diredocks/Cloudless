@@ -41,15 +41,15 @@ extension WeatherLocalizations on AppLocalizations {
     final datePart = isoDate.length >= 10 ? isoDate.substring(0, 10) : isoDate;
     final date = DateTime.tryParse(datePart);
     if (date == null) return '';
-    return <String>[
-      weekdayMonday,
-      weekdayTuesday,
-      weekdayWednesday,
-      weekdayThursday,
-      weekdayFriday,
-      weekdaySaturday,
-      weekdaySunday,
-    ][date.weekday - 1];
+    return switch (date.weekday) {
+      DateTime.monday => weekdayMonday,
+      DateTime.tuesday => weekdayTuesday,
+      DateTime.wednesday => weekdayWednesday,
+      DateTime.thursday => weekdayThursday,
+      DateTime.friday => weekdayFriday,
+      DateTime.saturday => weekdaySaturday,
+      _ => weekdaySunday,
+    };
   }
 
   String weeklyForecastSummary(String dominantSkycon) =>

@@ -61,6 +61,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _selectLanguage(String? code) => setState(() => _languageCode = code);
 
+  /// Checks [key] against the weather service. Returns the localized error to
+  /// show, or null when the key works.
+  Future<String?> _validateKey(String key) async {
+    final l10n = AppLocalizations.of(context);
+    final api = CaiyunApi(token: key, client: widget.client);
+    try {
+      await api.fetch(cityCatalog.first);
+      return null;
+    } on WeatherApiException catch (error) {
+      return l10n.weatherError(error);
+    } finally {
+      api.dispose();
+    }
+  }
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final key = _controller.text.trim();
@@ -74,18 +89,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _error = null;
     });
 
-    final api = CaiyunApi(token: key, client: widget.client);
-    try {
-      await api.fetch(cityCatalog.first);
-    } on WeatherApiException catch (error) {
-      if (!mounted) return;
+    final error = await _validateKey(key);
+    if (!mounted) return;
+    if (error != null) {
       setState(() {
         _saving = false;
-        _error = l10n.weatherError(error);
+        _error = error;
       });
       return;
-    } finally {
-      api.dispose();
     }
 
     await widget.store.setApiKey(key);
