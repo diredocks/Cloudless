@@ -38,44 +38,49 @@ class StatusScreen extends StatelessWidget {
                   child: SettingsButton(color: scheme.onSurface),
                 ),
               ),
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (onRetry == null) const CircularProgressIndicator(),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          message,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: scheme.onSurface,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      if (onRetry != null) ...[
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: onRetry,
-                          child: Text(
-                            l10n.tryAgain,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+              Expanded(child: _centeredContent(l10n, scheme)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// A spinner while loading, or the message with a retry action on failure.
+  Widget _centeredContent(AppLocalizations l10n, ColorScheme scheme) {
+    final isError = onRetry != null;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isError) const CircularProgressIndicator(),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: scheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (isError) _retryButton(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _retryButton(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: TextButton(
+        onPressed: onRetry,
+        child: Text(
+          l10n.tryAgain,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
         ),
       ),
     );

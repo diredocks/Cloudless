@@ -124,9 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: appSystemUiOverlayStyle(scheme),
       child: Scaffold(
-        appBar: widget.isFirstRun
-            ? null
-            : AppBar(title: Text(l10n.settingsTitle)),
+        appBar: _appBar(l10n),
         body: SafeArea(
           child: Column(
             children: [
@@ -136,146 +134,171 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     horizontal: 22,
                     vertical: 16,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.isFirstRun) ...[
-                        const SizedBox(height: 40),
-                        Icon(Icons.settings, color: scheme.primary, size: 64),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.firstRunTitle,
-                          style: TextStyle(
-                            color: scheme.onSurface,
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            height: 1.1,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.firstRunPrompt,
-                          style: TextStyle(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
-                      Text(
-                        l10n.apiKeyLabel,
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _controller,
-                        obscureText: _obscure,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: l10n.apiKeyHint,
-                          hintStyle: TextStyle(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          suffixIcon: IconButton(
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
-                            icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          _error!,
-                          style: TextStyle(
-                            color: scheme.error,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 32),
-                      Text(
-                        l10n.languageLabel,
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      _LanguageDropdown(
-                        value: _languageCode,
-                        onChanged: _selectLanguage,
-                      ),
-                      const SizedBox(height: 32),
-                      Text(
-                        l10n.timeFormatLabel,
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      _TimeFormatToggle(
-                        value: _use24Hour,
-                        onChanged: (value) =>
-                            setState(() => _use24Hour = value),
-                      ),
-                    ],
-                  ),
+                  child: _form(l10n, scheme),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: FilledButton(
-                    onPressed: _saving ? null : _save,
-                    child: _saving
-                        ? SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: scheme.onPrimary,
-                            ),
-                          )
-                        : Text(
-                            l10n.save,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
+              _bottomBar(l10n, scheme),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// No app bar during first run, so the prompt cannot be dismissed.
+  PreferredSizeWidget? _appBar(AppLocalizations l10n) {
+    if (widget.isFirstRun) return null;
+    return AppBar(title: Text(l10n.settingsTitle));
+  }
+
+  Widget _form(AppLocalizations l10n, ColorScheme scheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ..._firstRunHeader(l10n, scheme),
+        Text(
+          l10n.apiKeyLabel,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _controller,
+          obscureText: _obscure,
+          autocorrect: false,
+          enableSuggestions: false,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          decoration: InputDecoration(
+            hintText: l10n.apiKeyHint,
+            hintStyle: TextStyle(
+              color: scheme.onSurfaceVariant,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+            suffixIcon: IconButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              icon: Icon(
+                _obscure ? Icons.visibility_off : Icons.visibility,
+              ),
+            ),
+          ),
+        ),
+        ..._errorNotice(scheme),
+        const SizedBox(height: 32),
+        Text(
+          l10n.languageLabel,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        _LanguageDropdown(
+          value: _languageCode,
+          onChanged: _selectLanguage,
+        ),
+        const SizedBox(height: 32),
+        Text(
+          l10n.timeFormatLabel,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        _TimeFormatToggle(
+          value: _use24Hour,
+          onChanged: (value) => setState(() => _use24Hour = value),
+        ),
+      ],
+    );
+  }
+
+  /// The intro block shown only when there is no saved API key yet.
+  List<Widget> _firstRunHeader(AppLocalizations l10n, ColorScheme scheme) {
+    if (!widget.isFirstRun) return const [];
+    return [
+      const SizedBox(height: 40),
+      Icon(Icons.settings, color: scheme.primary, size: 64),
+      const SizedBox(height: 16),
+      Text(
+        l10n.firstRunTitle,
+        style: TextStyle(
+          color: scheme.onSurface,
+          fontSize: 30,
+          fontWeight: FontWeight.w900,
+          height: 1.1,
+          letterSpacing: -0.5,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        l10n.firstRunPrompt,
+        style: TextStyle(
+          color: scheme.onSurfaceVariant,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+        ),
+      ),
+      const SizedBox(height: 40),
+    ];
+  }
+
+  /// The validation error, shown below the API key field when present.
+  List<Widget> _errorNotice(ColorScheme scheme) {
+    final error = _error;
+    if (error == null) return const [];
+    return [
+      const SizedBox(height: 12),
+      Text(
+        error,
+        style: TextStyle(
+          color: scheme.error,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ];
+  }
+
+  Widget _bottomBar(AppLocalizations l10n, ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saveButtonChild(l10n, scheme),
+        ),
+      ),
+    );
+  }
+
+  Widget _saveButtonChild(AppLocalizations l10n, ColorScheme scheme) {
+    if (_saving) {
+      return SizedBox(
+        width: 22,
+        height: 22,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: scheme.onPrimary,
+        ),
+      );
+    }
+    return Text(
+      l10n.save,
+      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
     );
   }
 }

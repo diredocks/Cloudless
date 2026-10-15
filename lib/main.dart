@@ -124,8 +124,6 @@ class _CloudlessAppState extends State<CloudlessApp>
 
   @override
   Widget build(BuildContext context) {
-    final api = _api;
-
     // Adopts the system's Material You palette when available, so settings and
     // other palette-free UI follow the system theme. Falls back to a seeded
     // scheme on platforms that do not provide dynamic colors.
@@ -146,25 +144,33 @@ class _CloudlessAppState extends State<CloudlessApp>
           schemeFromSeed(darkDynamic?.primary, Brightness.dark),
         ),
         themeMode: ThemeMode.system,
-        home: api == null
-            ? SettingsScreen(
-                store: widget.store,
-                client: widget.client,
-                isFirstRun: true,
-                languageCode: _languageCode,
-                use24Hour: _use24Hour,
-                onSaved: _handleSaved,
-              )
-            : SettingsScope(
-                openSettings: _openSettings,
-                child: HomeShell(
-                  key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
-                  api: api,
-                  citySearch: _citySearch,
-                  store: widget.store,
-                  use24Hour: _use24Hour,
-                ),
-              ),
+        home: _home(),
+      ),
+    );
+  }
+
+  /// The root screen: settings until an API key is saved, then the weather
+  /// shell wrapped in a [SettingsScope].
+  Widget _home() {
+    final api = _api;
+    if (api == null) {
+      return SettingsScreen(
+        store: widget.store,
+        client: widget.client,
+        isFirstRun: true,
+        languageCode: _languageCode,
+        use24Hour: _use24Hour,
+        onSaved: _handleSaved,
+      );
+    }
+    return SettingsScope(
+      openSettings: _openSettings,
+      child: HomeShell(
+        key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
+        api: api,
+        citySearch: _citySearch,
+        store: widget.store,
+        use24Hour: _use24Hour,
       ),
     );
   }
