@@ -68,7 +68,7 @@ class TodayScreen extends StatelessWidget {
           ),
           palette: palette,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 10),
       ],
     );
   }
