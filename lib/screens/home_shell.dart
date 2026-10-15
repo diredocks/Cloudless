@@ -6,6 +6,7 @@ import '../data/city_search_api.dart';
 import '../data/settings_store.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
+import '../models/settings.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/status_screen.dart';
 import '../widgets/weather_bottom_nav.dart';
@@ -21,15 +22,15 @@ class HomeShell extends StatefulWidget {
     required this.api,
     required this.citySearch,
     required this.store,
-    required this.use24Hour,
+    required this.settings,
   });
 
   final CaiyunApi api;
   final CitySearchApi citySearch;
   final SettingsStore store;
 
-  /// Whether hourly labels use a 24-hour clock.
-  final bool use24Hour;
+  /// The user's persisted settings, used for display options.
+  final Settings settings;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -103,7 +104,7 @@ class _HomeShellState extends State<HomeShell> {
       WeatherTab.weekly => WeeklyScreen(weather: bundle.weekly),
       WeatherTab.hourly => HourlyScreen(
         weather: bundle.hourly,
-        use24Hour: widget.use24Hour,
+        use24Hour: widget.settings.use24Hour,
       ),
       WeatherTab.search => SearchScreen(
         palette: palette,

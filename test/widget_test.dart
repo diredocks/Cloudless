@@ -86,7 +86,7 @@ void main() {
     await tester.tap(find.text('save'));
     await tester.pumpAndSettle();
 
-    expect(store.use24Hour, isTrue);
+    expect(store.settings.use24Hour, isTrue);
     expect(find.text('21:00'), findsOneWidget);
     expect(find.text('9 pm'), findsNothing);
   });
@@ -197,7 +197,7 @@ void main() {
     await tester.tap(find.text('save'));
     await tester.pumpAndSettle();
 
-    expect(store.apiKey, 'new-key');
+    expect(store.settings.apiKey, 'new-key');
     expect(find.text('北京'), findsOneWidget);
   });
 
@@ -234,13 +234,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // Selecting a language must not persist or apply it yet.
-    expect(store.languageCode, isNull);
+    expect(store.settings.languageCode, isNull);
     expect(find.text('设置'), findsNothing);
 
     await tester.tap(find.text('save'));
     await tester.pumpAndSettle();
 
-    expect(store.languageCode, 'zh');
+    expect(store.settings.languageCode, 'zh');
     expect(find.text('今天'), findsOneWidget);
   });
 
@@ -263,7 +263,7 @@ void main() {
     await tester.tap(find.text('北京，海淀'));
     await tester.pumpAndSettle();
 
-    expect(store.cities.any((c) => c.id == '101010200'), isTrue);
+    expect(store.settings.cities.any((c) => c.id == '101010200'), isTrue);
 
     // Let the confirmation SnackBar time out so no timer outlives the test.
     await tester.pump(const Duration(seconds: 3));
@@ -287,8 +287,8 @@ void main() {
     await tester.tap(find.text('delete'));
     await tester.pumpAndSettle();
 
-    expect(store.cities, hasLength(cityCatalog.length - 1));
-    expect(store.cities.any((c) => c.id == '101010100'), isFalse);
+    expect(store.settings.cities, hasLength(cityCatalog.length - 1));
+    expect(store.settings.cities.any((c) => c.id == '101010100'), isFalse);
   });
 
   testWidgets('pull to refresh reloads the weather', (

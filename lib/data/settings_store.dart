@@ -2,39 +2,22 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/settings.dart';
 import '../models/weather.dart';
 
-/// Persistence for user settings and the saved city list.
+/// Persistence for the user's [Settings].
 abstract class SettingsStore {
-  String? get apiKey;
+  /// The current settings, seeded on load and kept up to date by [save].
+  Settings get settings;
 
-  Future<void> setApiKey(String value);
-
-  /// Preferred UI language code (`en`, `zh`) or null to follow the system.
-  String? get languageCode;
-
-  Future<void> setLanguageCode(String? value);
-
-  /// Whether hourly forecast times use a 24-hour clock; false means am/pm.
-  bool get use24Hour;
-
-  Future<void> setUse24Hour(bool value);
-
-  /// The user's cities in display order. Empty when the user has not saved any
-  /// yet, in which case the caller seeds the defaults.
-  List<CityLocation> get cities;
-
-  Future<void> setCities(List<CityLocation> cities);
-
-  /// Id of the currently selected city, or null when unset.
-  String? get selectedCityId;
-
-  Future<void> setSelectedCityId(String? value);
+  /// Persists [settings], replacing the stored value.
+  Future<void> save(Settings settings);
 }
 
 /// [SettingsStore] backed by [SharedPreferences].
 class SharedPreferencesSettingsStore implements SettingsStore {
-  SharedPreferencesSettingsStore(this._preferences);
+  SharedPreferencesSettingsStore(this._preferences)
+    : _settings = _read(_preferences);
 
   static const String _apiKeyKey = 'caiyun_api_key';
   static const String _languageKey = 'app_language';
@@ -43,45 +26,37 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   static const String _selectedCityKey = 'selected_city';
 
   final SharedPreferences _preferences;
+  Settings _settings;
 
   static Future<SharedPreferencesSettingsStore> load() async =>
       SharedPreferencesSettingsStore(await SharedPreferences.getInstance());
 
   @override
-  String? get apiKey {
-    final value = _preferences.getString(_apiKeyKey);
-    return (value == null || value.isEmpty) ? null : value;
+  Settings get settings => _settings;
+
+  @override
+  Future<void> save(Settings value) async {
+    _settings = value;
+    await _setOrRemove(_apiKeyKey, value.apiKey);
+    await _setOrRemove(_languageKey, value.languageCode);
+    await _preferences.setBool(_use24HourKey, value.use24Hour);
+    await _preferences.setStringList(_citiesKey, [
+      for (final city in value.cities) jsonEncode(city.toJson()),
+    ]);
+    await _setOrRemove(_selectedCityKey, value.selectedCityId);
   }
 
-  @override
-  Future<void> setApiKey(String value) =>
-      _preferences.setString(_apiKeyKey, value);
+  static Settings _read(SharedPreferences preferences) => Settings(
+    apiKey: _nonEmpty(preferences.getString(_apiKeyKey)),
+    languageCode: _nonEmpty(preferences.getString(_languageKey)),
+    use24Hour: preferences.getBool(_use24HourKey) ?? false,
+    cities: _decodeCities(preferences.getStringList(_citiesKey)),
+    selectedCityId: _nonEmpty(preferences.getString(_selectedCityKey)),
+  );
 
-  @override
-  String? get languageCode {
-    final value = _preferences.getString(_languageKey);
-    return (value == null || value.isEmpty) ? null : value;
-  }
-
-  @override
-  Future<void> setLanguageCode(String? value) async {
-    if (value == null || value.isEmpty) {
-      await _preferences.remove(_languageKey);
-      return;
-    }
-    await _preferences.setString(_languageKey, value);
-  }
-
-  @override
-  bool get use24Hour => _preferences.getBool(_use24HourKey) ?? false;
-
-  @override
-  Future<void> setUse24Hour(bool value) =>
-      _preferences.setBool(_use24HourKey, value);
-
-  @override
-  List<CityLocation> get cities {
-    final raw = _preferences.getStringList(_citiesKey);
+  /// Decodes the stored city list, skipping entries that are corrupt or have an
+  /// unexpected shape rather than losing the whole list.
+  static List<CityLocation> _decodeCities(List<String>? raw) {
     if (raw == null) return const [];
     final result = <CityLocation>[];
     for (final entry in raw) {
@@ -99,24 +74,14 @@ class SharedPreferencesSettingsStore implements SettingsStore {
     return result;
   }
 
-  @override
-  Future<void> setCities(List<CityLocation> cities) =>
-      _preferences.setStringList(_citiesKey, [
-        for (final city in cities) jsonEncode(city.toJson()),
-      ]);
+  static String? _nonEmpty(String? value) =>
+      (value == null || value.isEmpty) ? null : value;
 
-  @override
-  String? get selectedCityId {
-    final value = _preferences.getString(_selectedCityKey);
-    return (value == null || value.isEmpty) ? null : value;
-  }
-
-  @override
-  Future<void> setSelectedCityId(String? value) async {
+  Future<void> _setOrRemove(String key, String? value) async {
     if (value == null || value.isEmpty) {
-      await _preferences.remove(_selectedCityKey);
+      await _preferences.remove(key);
       return;
     }
-    await _preferences.setString(_selectedCityKey, value);
+    await _preferences.setString(key, value);
   }
 }

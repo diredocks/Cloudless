@@ -15,9 +15,11 @@ class WeatherController extends ChangeNotifier {
   WeatherController({required CaiyunApi api, required SettingsStore store}) {
     _api = api;
     _store = store;
-    final saved = store.cities;
-    _cities = saved.isNotEmpty ? List.of(saved) : List.of(cityCatalog);
-    final savedId = store.selectedCityId;
+    final saved = store.settings;
+    _cities = saved.cities.isNotEmpty
+        ? List.of(saved.cities)
+        : List.of(cityCatalog);
+    final savedId = saved.selectedCityId;
     _selectedCityId = _cities.any((c) => c.id == savedId)
         ? savedId!
         : _cities.first.id;
@@ -90,7 +92,7 @@ class WeatherController extends ChangeNotifier {
     _selectedCityId = city.id;
     _tab = WeatherTab.today;
     _notify();
-    _store.setSelectedCityId(city.id);
+    _store.save(_store.settings.copyWith(selectedCityId: city.id));
   }
 
   /// Adds [city] and loads its weather. Resolves to true when the city is now
@@ -112,7 +114,7 @@ class WeatherController extends ChangeNotifier {
     _cities = [..._cities, city];
     _bundles[city.id] = bundle;
     _notify();
-    await _store.setCities(_cities);
+    await _store.save(_store.settings.copyWith(cities: _cities));
     return true;
   }
 
@@ -124,8 +126,12 @@ class WeatherController extends ChangeNotifier {
       _selectedCityId = _cities.first.id;
     }
     _notify();
-    _store.setCities(_cities);
-    _store.setSelectedCityId(_selectedCityId);
+    _store.save(
+      _store.settings.copyWith(
+        cities: _cities,
+        selectedCityId: _selectedCityId,
+      ),
+    );
   }
 
   void _notify() {

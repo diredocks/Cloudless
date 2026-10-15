@@ -8,6 +8,7 @@ import 'data/city_search_api.dart';
 import 'data/settings_store.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
+import 'models/settings.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
 import 'theme/app_theme.dart';
@@ -37,17 +38,13 @@ class _CloudlessAppState extends State<CloudlessApp>
   final _navigatorKey = GlobalKey<NavigatorState>();
   late final CitySearchApi _citySearch;
   CaiyunApi? _api;
-  String? _apiKey;
-  String? _languageCode;
-  bool _use24Hour = false;
+  late Settings _settings;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _apiKey = widget.store.apiKey;
-    _languageCode = widget.store.languageCode;
-    _use24Hour = widget.store.use24Hour;
+    _settings = widget.store.settings;
     _citySearch = CitySearchApi(client: widget.client);
     _api = _createApi();
   }
@@ -69,7 +66,7 @@ class _CloudlessAppState extends State<CloudlessApp>
   }
 
   CaiyunApi? _createApi() {
-    final key = _apiKey;
+    final key = _settings.apiKey;
     if (key == null || key.isEmpty) return null;
     return CaiyunApi(
       token: key,
@@ -86,18 +83,17 @@ class _CloudlessAppState extends State<CloudlessApp>
     });
   }
 
-  void _handleSaved(String key, String? languageCode, bool use24Hour) {
+  void _handleSaved(Settings settings) {
     setState(() {
       _api?.dispose();
-      _apiKey = key;
-      _languageCode = languageCode;
-      _use24Hour = use24Hour;
+      _settings = settings;
       _api = _createApi();
     });
   }
 
   /// The explicitly selected language, or null when following the system.
-  AppLanguage? get _overrideLanguage => appLanguageForCode(_languageCode);
+  AppLanguage? get _overrideLanguage =>
+      appLanguageForCode(_settings.languageCode);
 
   /// Language actually in effect: the override, or the best match for the
   /// system locale.
@@ -114,8 +110,7 @@ class _CloudlessAppState extends State<CloudlessApp>
         builder: (_) => SettingsScreen(
           store: widget.store,
           client: widget.client,
-          languageCode: _languageCode,
-          use24Hour: _use24Hour,
+          settings: _settings,
           onSaved: _handleSaved,
         ),
       ),
@@ -153,24 +148,24 @@ class _CloudlessAppState extends State<CloudlessApp>
   /// shell wrapped in a [SettingsScope].
   Widget _home() {
     final api = _api;
+    final settings = _settings;
     if (api == null) {
       return SettingsScreen(
         store: widget.store,
         client: widget.client,
         isFirstRun: true,
-        languageCode: _languageCode,
-        use24Hour: _use24Hour,
+        settings: settings,
         onSaved: _handleSaved,
       );
     }
     return SettingsScope(
       openSettings: _openSettings,
       child: HomeShell(
-        key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
+        key: ValueKey('${settings.apiKey}-${_language.locale.toLanguageTag()}'),
         api: api,
         citySearch: _citySearch,
         store: widget.store,
-        use24Hour: _use24Hour,
+        settings: settings,
       ),
     );
   }

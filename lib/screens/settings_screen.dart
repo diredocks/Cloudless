@@ -8,33 +8,28 @@ import '../data/settings_store.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
+import '../models/settings.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
     required this.store,
+    required this.settings,
     required this.onSaved,
     this.client,
-    this.languageCode,
-    this.use24Hour = false,
     this.isFirstRun = false,
   });
 
   final SettingsStore store;
 
-  /// Called after the settings have been persisted with the new API key,
-  /// language override (`null` follows the system) and hour format.
-  final void Function(String apiKey, String? languageCode, bool use24Hour)
-  onSaved;
+  /// The settings being edited, used as the starting point.
+  final Settings settings;
+
+  /// Called after the settings have been persisted.
+  final ValueChanged<Settings> onSaved;
 
   final http.Client? client;
-
-  /// Current language code (see [kAppLanguages]) or null to follow the system.
-  final String? languageCode;
-
-  /// Whether hourly times use a 24-hour clock.
-  final bool use24Hour;
 
   /// When true the screen is shown as the app root (no saved key yet) and
   /// cannot be dismissed.
@@ -55,9 +50,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.store.apiKey ?? '');
-    _languageCode = widget.languageCode;
-    _use24Hour = widget.use24Hour;
+    _controller = TextEditingController(text: widget.settings.apiKey ?? '');
+    _languageCode = widget.settings.languageCode;
+    _use24Hour = widget.settings.use24Hour;
   }
 
   @override
@@ -106,11 +101,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
 
-    await widget.store.setApiKey(key);
-    await widget.store.setLanguageCode(_languageCode);
-    await widget.store.setUse24Hour(_use24Hour);
+    final current = widget.store.settings;
+    final settings = Settings(
+      apiKey: key,
+      languageCode: _languageCode,
+      use24Hour: _use24Hour,
+      cities: current.cities,
+      selectedCityId: current.selectedCityId,
+    );
+    await widget.store.save(settings);
     if (!mounted) return;
-    widget.onSaved(key, _languageCode, _use24Hour);
+    widget.onSaved(settings);
     if (!widget.isFirstRun && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
