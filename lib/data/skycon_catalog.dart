@@ -1,24 +1,6 @@
 import '../l10n/app_localizations.dart';
+import '../models/skycon.dart';
 import '../theme/weather_palette.dart';
-
-/// A Caiyun sky condition with its display palette and localized label.
-///
-/// Single source of truth for the mapping: to support a new condition add an
-/// entry to [skyconCatalog] and the matching `sky*` ARB entries. Unknown codes
-/// fall back to [fallbackSkycon].
-class Skycon {
-  const Skycon({
-    required this.code,
-    required this.palette,
-    required this.label,
-  });
-
-  final String code;
-  final WeatherPalette palette;
-
-  /// Resolves the localized label for the given [AppLocalizations].
-  final String Function(AppLocalizations) label;
-}
 
 /// Palette and label shown when the service reports an unrecognized code.
 const fallbackSkycon = Skycon(
@@ -30,6 +12,10 @@ const fallbackSkycon = Skycon(
 String _clearLabel(AppLocalizations l10n) => l10n.skyClear;
 
 /// Every supported Caiyun sky condition code.
+///
+/// Single source of truth for the mapping: to support a new condition add an
+/// entry here and the matching `sky*` ARB entries. Unknown codes fall back to
+/// [fallbackSkycon].
 final List<Skycon> skyconCatalog = <Skycon>[
   Skycon(
     code: 'CLEAR_DAY',

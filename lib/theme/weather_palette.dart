@@ -46,7 +46,7 @@ class WeatherPalette {
   );
 
   // --- Weather conditions -------------------------------------------------
-  // One palette per Caiyun sky condition, keyed in `skycons.dart`.
+  // One palette per Caiyun sky condition, keyed in `skycon_catalog.dart`.
 
   static const sunny = WeatherPalette(
     background: Color(0xFFE1541D),

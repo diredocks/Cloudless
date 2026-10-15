@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloudless_app/data/caiyun_api.dart';
-import 'package:cloudless_app/data/skycons.dart';
+import 'package:cloudless_app/data/skycon_catalog.dart';
 import 'package:cloudless_app/l10n/app_localizations.dart';
 import 'package:cloudless_app/l10n/weather_l10n.dart';
 import 'package:cloudless_app/theme/weather_palette.dart';

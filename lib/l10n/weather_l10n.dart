@@ -1,5 +1,5 @@
 import '../data/caiyun_api.dart';
-import '../data/skycons.dart';
+import '../data/skycon_catalog.dart';
 import '../models/weather.dart';
 import 'app_localizations.dart';
 
