@@ -1,3 +1,4 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,7 @@ import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
-import 'theme/weather_palette.dart';
+import 'theme/app_theme.dart';
 import 'widgets/settings_scope.dart';
 
 Future<void> main() async {
@@ -125,44 +126,46 @@ class _CloudlessAppState extends State<CloudlessApp>
   Widget build(BuildContext context) {
     final api = _api;
 
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      navigatorKey: _navigatorKey,
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: [for (final language in kAppLanguages) language.locale],
-      locale: _overrideLanguage?.locale,
-      theme: ThemeData(
-        useMaterial3: true,
-        splashFactory: NoSplash.splashFactory,
-        fontFamily: null,
-        pageTransitionsTheme: PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: PredictiveBackPageTransitionsBuilder(
-              fallbackColor: WeatherPalette.navy.background,
-            ),
-          },
+    // Adopts the system's Material You palette when available, so settings and
+    // other palette-free UI follow the system theme. Falls back to a seeded
+    // scheme on platforms that do not provide dynamic colors.
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) => MaterialApp(
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+        navigatorKey: _navigatorKey,
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: [
+          for (final language in kAppLanguages) language.locale,
+        ],
+        locale: _overrideLanguage?.locale,
+        theme: buildAppTheme(
+          schemeFromSeed(lightDynamic?.primary, Brightness.light),
         ),
-      ),
-      home: api == null
-          ? SettingsScreen(
-              store: widget.store,
-              client: widget.client,
-              isFirstRun: true,
-              languageCode: _languageCode,
-              use24Hour: _use24Hour,
-              onSaved: _handleSaved,
-            )
-          : SettingsScope(
-              openSettings: _openSettings,
-              child: HomeShell(
-                key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
-                api: api,
-                citySearch: _citySearch,
+        darkTheme: buildAppTheme(
+          schemeFromSeed(darkDynamic?.primary, Brightness.dark),
+        ),
+        themeMode: ThemeMode.system,
+        home: api == null
+            ? SettingsScreen(
                 store: widget.store,
+                client: widget.client,
+                isFirstRun: true,
+                languageCode: _languageCode,
                 use24Hour: _use24Hour,
+                onSaved: _handleSaved,
+              )
+            : SettingsScope(
+                openSettings: _openSettings,
+                child: HomeShell(
+                  key: ValueKey('$_apiKey-${_language.locale.toLanguageTag()}'),
+                  api: api,
+                  citySearch: _citySearch,
+                  store: widget.store,
+                  use24Hour: _use24Hour,
+                ),
               ),
-            ),
+      ),
     );
   }
 }

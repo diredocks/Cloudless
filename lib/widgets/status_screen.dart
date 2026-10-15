@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/app_localizations.dart';
-import '../theme/weather_palette.dart';
+import '../theme/app_theme.dart';
 import 'settings_button.dart';
 
 /// Full-screen status used while the weather is loading or after a failure.
@@ -22,12 +22,12 @@ class StatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const palette = WeatherPalette.sky;
+    final scheme = Theme.of(context).colorScheme;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: palette.systemUiOverlayStyle,
+      value: appSystemUiOverlayStyle(scheme),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 350),
-        color: palette.background,
+        color: scheme.surface,
         child: SafeArea(
           child: Column(
             children: [
@@ -35,7 +35,7 @@ class StatusScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8, right: 12),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: SettingsButton(palette: palette),
+                  child: SettingsButton(color: scheme.onSurface),
                 ),
               ),
               Expanded(
@@ -43,15 +43,18 @@ class StatusScreen extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (onRetry == null)
-                        CircularProgressIndicator(color: palette.foreground),
+                      if (onRetry == null) const CircularProgressIndicator(),
                       const SizedBox(height: 20),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: Text(
                           message,
                           textAlign: TextAlign.center,
-                          style: palette.text(size: 18, weight: FontWeight.w700),
+                          style: TextStyle(
+                            color: scheme.onSurface,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                       if (onRetry != null) ...[
@@ -60,9 +63,9 @@ class StatusScreen extends StatelessWidget {
                           onPressed: onRetry,
                           child: Text(
                             l10n.tryAgain,
-                            style: palette.text(
-                              size: 16,
-                              weight: FontWeight.w800,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),

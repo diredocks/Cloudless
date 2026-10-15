@@ -56,7 +56,7 @@ class WeatherPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (gap != null)
-            SettingsPageGap(height: maxHeight * gap, palette: palette!),
+            SettingsPageGap(height: maxHeight * gap, color: palette!.foreground),
           ...children(maxHeight),
         ],
       ),

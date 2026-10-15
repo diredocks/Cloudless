@@ -39,12 +39,6 @@ class WeatherPalette {
     letterSpacing: letterSpacing,
   );
 
-  /// Settings screen background.
-  static const navy = WeatherPalette(
-    background: Color(0xFF202A5C),
-    foreground: Color(0xFFFBE9E0),
-  );
-
   /// Neutral background used before data loads and for unknown conditions.
   static const sky = WeatherPalette(
     background: Color(0xFFCDE7F6),

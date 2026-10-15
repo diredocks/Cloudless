@@ -8,7 +8,7 @@ import '../data/settings_store.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
-import '../theme/weather_palette.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -119,21 +119,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const palette = WeatherPalette.navy;
+    final scheme = Theme.of(context).colorScheme;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: palette.systemUiOverlayStyle,
+      value: appSystemUiOverlayStyle(scheme),
       child: Scaffold(
-        backgroundColor: palette.background,
         appBar: widget.isFirstRun
             ? null
-            : AppBar(
-                backgroundColor: palette.background,
-                foregroundColor: palette.foreground,
-                systemOverlayStyle: palette.systemUiOverlayStyle,
-                elevation: 0,
-                title: Text(l10n.settingsTitle),
-              ),
+            : AppBar(title: Text(l10n.settingsTitle)),
         body: SafeArea(
           child: Column(
             children: [
@@ -148,17 +141,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       if (widget.isFirstRun) ...[
                         const SizedBox(height: 40),
-                        Icon(
-                          Icons.settings,
-                          color: palette.foreground,
-                          size: 64,
-                        ),
+                        Icon(Icons.settings, color: scheme.primary, size: 64),
                         const SizedBox(height: 16),
                         Text(
                           l10n.firstRunTitle,
-                          style: palette.text(
-                            size: 30,
-                            weight: FontWeight.w900,
+                          style: TextStyle(
+                            color: scheme.onSurface,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w900,
                             height: 1.1,
                             letterSpacing: -0.5,
                           ),
@@ -166,18 +156,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 8),
                         Text(
                           l10n.firstRunPrompt,
-                          style: palette.text(
-                            size: 18,
-                            weight: FontWeight.w600,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                             height: 1.3,
-                            color: palette.foreground.withValues(alpha: 0.8),
                           ),
                         ),
                         const SizedBox(height: 40),
                       ],
                       Text(
                         l10n.apiKeyLabel,
-                        style: palette.text(size: 17, weight: FontWeight.w700),
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextField(
@@ -185,14 +179,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         obscureText: _obscure,
                         autocorrect: false,
                         enableSuggestions: false,
-                        cursorColor: palette.foreground,
-                        style: palette.text(size: 20, weight: FontWeight.w700),
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
                         decoration: InputDecoration(
                           hintText: l10n.apiKeyHint,
-                          hintStyle: palette.text(
-                            size: 20,
-                            weight: FontWeight.w700,
-                            color: palette.foreground.withValues(alpha: 0.5),
+                          hintStyle: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
                           ),
                           suffixIcon: IconButton(
                             onPressed: () =>
@@ -201,19 +198,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               _obscure
                                   ? Icons.visibility_off
                                   : Icons.visibility,
-                              color: palette.foreground,
-                            ),
-                          ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: palette.hairline,
-                              width: 1,
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: palette.foreground,
-                              width: 2,
                             ),
                           ),
                         ),
@@ -222,32 +206,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 12),
                         Text(
                           _error!,
-                          style: palette.text(
-                            size: 16,
-                            weight: FontWeight.w700,
+                          style: TextStyle(
+                            color: scheme.error,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                       const SizedBox(height: 32),
                       Text(
                         l10n.languageLabel,
-                        style: palette.text(size: 17, weight: FontWeight.w700),
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       _LanguageDropdown(
                         value: _languageCode,
-                        palette: palette,
                         onChanged: _selectLanguage,
                       ),
                       const SizedBox(height: 32),
                       Text(
                         l10n.timeFormatLabel,
-                        style: palette.text(size: 17, weight: FontWeight.w700),
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       _TimeFormatToggle(
                         value: _use24Hour,
-                        palette: palette,
                         onChanged: (value) =>
                             setState(() => _use24Hour = value),
                       ),
@@ -262,20 +253,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: 56,
                   child: FilledButton(
                     onPressed: _saving ? null : _save,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: palette.foreground,
-                      foregroundColor: palette.background,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
                     child: _saving
                         ? SizedBox(
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: palette.background,
+                              color: scheme.onPrimary,
                             ),
                           )
                         : Text(
@@ -297,40 +281,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
 }
 
 class _TimeFormatToggle extends StatelessWidget {
-  const _TimeFormatToggle({
-    required this.value,
-    required this.palette,
-    required this.onChanged,
-  });
+  const _TimeFormatToggle({required this.value, required this.onChanged});
 
   final bool value;
-  final WeatherPalette palette;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: palette.hairline, width: 1)),
+        border: Border(
+          bottom: BorderSide(color: scheme.outlineVariant, width: 1),
+        ),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               value ? l10n.timeFormat24 : l10n.timeFormatAmPm,
-              style: palette.text(size: 20, weight: FontWeight.w700),
+              style: TextStyle(
+                color: scheme.onSurface,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: palette.background,
-            activeTrackColor: palette.foreground,
-            inactiveThumbColor: palette.background,
-            inactiveTrackColor: palette.foreground.withValues(alpha: 0.4),
-          ),
+          Switch(value: value, onChanged: onChanged),
         ],
       ),
     );
@@ -338,34 +317,36 @@ class _TimeFormatToggle extends StatelessWidget {
 }
 
 class _LanguageDropdown extends StatelessWidget {
-  const _LanguageDropdown({
-    required this.value,
-    required this.palette,
-    required this.onChanged,
-  });
+  const _LanguageDropdown({required this.value, required this.onChanged});
 
   static const String _system = 'system';
 
   final String? value;
-  final WeatherPalette palette;
   final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: palette.hairline, width: 1)),
+        border: Border(
+          bottom: BorderSide(color: scheme.outlineVariant, width: 1),
+        ),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value ?? _system,
           isExpanded: true,
-          dropdownColor: palette.background,
-          iconEnabledColor: palette.foreground,
+          dropdownColor: scheme.surfaceContainer,
+          iconEnabledColor: scheme.onSurfaceVariant,
           borderRadius: BorderRadius.circular(4),
-          style: palette.text(size: 20, weight: FontWeight.w700),
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
           items: [
             DropdownMenuItem(value: _system, child: Text(l10n.languageSystem)),
             for (final language in kAppLanguages)

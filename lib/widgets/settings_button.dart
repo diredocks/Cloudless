@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import '../theme/weather_palette.dart';
 import 'settings_scope.dart';
 
 /// A settings button docked in a weather page's top gap.
@@ -9,16 +8,13 @@ import 'settings_scope.dart';
 /// It lives inside the page's scroll view, so it scrolls away with the
 /// forecast instead of staying pinned to the screen.
 class SettingsPageGap extends StatelessWidget {
-  const SettingsPageGap({
-    super.key,
-    required this.height,
-    required this.palette,
-  });
+  const SettingsPageGap({super.key, required this.height, required this.color});
 
   /// Height of the empty gap the button sits at the top of.
   final double height;
 
-  final WeatherPalette palette;
+  /// Foreground color for the button, so it reads on the current background.
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +29,7 @@ class SettingsPageGap extends StatelessWidget {
           Positioned(
             top: 8,
             right: -10,
-            child: SettingsButton(palette: palette),
+            child: SettingsButton(color: color),
           ),
         ],
       ),
@@ -46,9 +42,10 @@ class SettingsPageGap extends StatelessWidget {
 /// Tapping it briefly reveals the "long press" hint; a long press opens the
 /// settings screen via [SettingsScope].
 class SettingsButton extends StatefulWidget {
-  const SettingsButton({super.key, required this.palette});
+  const SettingsButton({super.key, required this.color});
 
-  final WeatherPalette palette;
+  /// Icon and hint color, so the button reads on the current background.
+  final Color color;
 
   @override
   State<SettingsButton> createState() => _SettingsButtonState();
@@ -114,7 +111,7 @@ class _SettingsButtonState extends State<SettingsButton>
           },
           child: Text(
             l10n.settingsHintSnack,
-            style: TextStyle(color: widget.palette.foreground, fontSize: 16),
+            style: TextStyle(color: widget.color, fontSize: 16),
           ),
         ),
         const SizedBox(width: 4),
@@ -126,7 +123,7 @@ class _SettingsButtonState extends State<SettingsButton>
             padding: const EdgeInsets.all(8),
             child: Icon(
               Icons.settings_outlined,
-              color: widget.palette.foreground,
+              color: widget.color,
               size: 26,
             ),
           ),

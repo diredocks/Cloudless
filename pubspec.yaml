@@ -48,6 +48,10 @@ dependencies:
   # Persists the user-provided API key across launches.
   shared_preferences: ^2.3.2
 
+  # Provides the system (Material You) palette so palette-free UI follows the
+  # system theme.
+  dynamic_color: ^2.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
