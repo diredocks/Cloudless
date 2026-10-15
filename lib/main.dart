@@ -4,10 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-import 'data/settings_store.dart';
+import 'data/local/settings_store.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/api.dart';
+import 'providers/cities.dart';
 import 'providers/dependencies.dart';
 import 'providers/settings.dart';
 import 'providers/weather.dart';

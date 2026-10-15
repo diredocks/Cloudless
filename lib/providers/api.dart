@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/caiyun_api.dart';
-import '../data/city_search_api.dart';
+import '../data/remote/caiyun_api.dart';
+import '../data/remote/city_search_api.dart';
 import 'dependencies.dart';
 import 'settings.dart';
 

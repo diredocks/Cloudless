@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
-import '../models/weather.dart';
-import '../models/weather_tab.dart';
+import '../models/city.dart';
+import '../models/weather_bundle.dart';
+import '../providers/cities.dart';
 import '../providers/settings.dart';
 import '../providers/weather.dart';
+import '../providers/weather_tab.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/status_screen.dart';
 import '../widgets/weather_bottom_nav.dart';

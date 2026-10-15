@@ -1,6 +1,6 @@
 import '../l10n/app_localizations.dart';
-import '../models/skycon.dart';
 import '../theme/weather_palette.dart';
+import 'skycon.dart';
 
 /// Palette and label shown when the service reports an unrecognized code.
 const fallbackSkycon = Skycon(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import '../models/weather_tab.dart';
+import '../providers/weather_tab.dart';
 import '../theme/weather_palette.dart';
 
 class WeatherBottomNav extends StatelessWidget {

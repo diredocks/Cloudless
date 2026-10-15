@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/settings.dart';
-import '../models/weather.dart';
+import '../../models/city.dart';
+import '../../models/settings.dart';
 
 /// Persistence for the user's [Settings].
 abstract class SettingsStore {

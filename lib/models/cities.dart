@@ -1,4 +1,4 @@
-import '../models/weather.dart';
+import 'city.dart';
 
 /// Default cities seeded on first run. Caiyun does not expose forward
 /// geocoding, so the search feature finds more cities through

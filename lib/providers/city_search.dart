@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/weather.dart';
+import '../models/city.dart';
 import 'api.dart';
 
 /// Debounce applied before a city search hits the network.

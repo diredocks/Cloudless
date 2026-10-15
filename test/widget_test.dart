@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cloudless_app/data/cities.dart';
-import 'package:cloudless_app/data/settings_store.dart';
+import 'package:cloudless_app/data/local/settings_store.dart';
+import 'package:cloudless_app/models/cities.dart';
 import 'package:cloudless_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

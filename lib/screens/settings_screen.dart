@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/caiyun_api.dart';
-import '../data/cities.dart';
+import '../data/remote/caiyun_api.dart';
+import '../data/remote/weather_api_exception.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
+import '../models/cities.dart';
 import '../models/settings.dart';
 import '../providers/dependencies.dart';
 import '../providers/settings.dart';

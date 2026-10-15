@@ -1,4 +1,4 @@
-import '../models/weather.dart';
+import '../../models/city.dart';
 import 'api_client.dart';
 
 /// Raised when the China Weather area search endpoint cannot be reached or

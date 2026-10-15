@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/cities.dart';
 import '../l10n/app_language.dart';
+import '../models/cities.dart';
+import '../models/city.dart';
 import '../models/settings.dart';
-import '../models/weather.dart';
 import 'dependencies.dart';
 
 /// The user's persisted settings: the app-level source of truth for the API

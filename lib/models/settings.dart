@@ -1,4 +1,4 @@
-import 'weather.dart';
+import 'city.dart';
 
 /// The user's persisted preferences: API credentials, display options and the
 /// saved city list.

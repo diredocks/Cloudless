@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
-import '../models/weather.dart';
+import '../models/forecasts.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/hairline_row.dart';
 import '../widgets/temperature_label.dart';

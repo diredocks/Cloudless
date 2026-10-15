@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-import '../data/settings_store.dart';
+import '../data/local/settings_store.dart';
 
 /// Root dependencies, overridden at startup (and by tests). They sit at the
 /// bottom of the graph: nothing here depends on app state.
