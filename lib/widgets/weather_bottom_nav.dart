@@ -55,20 +55,26 @@ class WeatherBottomNav extends StatelessWidget {
                 child: InkResponse(
                   onTap: () => onSelected(tab),
                   radius: 40,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(_icons[tab], color: color, size: 30),
-                      const SizedBox(height: 4),
-                      Text(
-                        _label(l10n, tab),
-                        style: palette.text(
-                          size: 14,
-                          weight: selected ? FontWeight.w700 : FontWeight.w600,
-                          color: color,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    child: Column(
+                      key: ValueKey('${tab.name}-$selected'),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(_icons[tab], color: color, size: 30),
+                        const SizedBox(height: 4),
+                        Text(
+                          _label(l10n, tab),
+                          style: palette.text(
+                            size: 14,
+                            weight: selected ? FontWeight.w700 : FontWeight.w600,
+                            color: color,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
