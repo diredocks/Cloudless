@@ -37,5 +37,6 @@ class MemorySettingsStore implements SettingsStore {
   String? get selectedCityId => _selectedCityId;
 
   @override
-  Future<void> setSelectedCityId(String? value) async => _selectedCityId = value;
+  Future<void> setSelectedCityId(String? value) async =>
+      _selectedCityId = value;
 }

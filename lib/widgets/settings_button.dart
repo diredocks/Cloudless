@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+
+import '../l10n/app_localizations.dart';
+import '../theme/weather_palette.dart';
+
+/// The settings entry point shown over every weather screen.
+///
+/// Tapping it briefly reveals the "long press" hint; a long press opens the
+/// settings screen via [onOpenSettings].
+class SettingsButton extends StatefulWidget {
+  const SettingsButton({
+    super.key,
+    required this.palette,
+    required this.onOpenSettings,
+  });
+
+  final WeatherPalette palette;
+  final VoidCallback onOpenSettings;
+
+  @override
+  State<SettingsButton> createState() => _SettingsButtonState();
+}
+
+class _SettingsButtonState extends State<SettingsButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _offset;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _offset = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: -6.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -6.0, end: 6.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 6.0, end: -6.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -6.0, end: 6.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 6.0, end: 0.0), weight: 1),
+      TweenSequenceItem(tween: ConstantTween(0.0), weight: 24),
+    ]).animate(_controller);
+    _opacity = Tween(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.8, 1, curve: Curves.easeIn),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _showSettingsHint() {
+    _controller.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final visible = _controller.value > 0;
+            return Opacity(
+              opacity: visible ? _opacity.value : 0,
+              child: Transform.translate(
+                offset: Offset(_offset.value, 0),
+                child: child,
+              ),
+            );
+          },
+          child: Text(
+            l10n.settingsHintSnack,
+            style: TextStyle(color: widget.palette.foreground, fontSize: 16),
+          ),
+        ),
+        const SizedBox(width: 4),
+        InkResponse(
+          radius: 28,
+          onTap: _showSettingsHint,
+          onLongPress: widget.onOpenSettings,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              Icons.settings_outlined,
+              color: widget.palette.foreground,
+              size: 26,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

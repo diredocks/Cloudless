@@ -268,7 +268,9 @@ void main() {
       return http.Response(sampleWeatherResponse, 200);
     });
 
-    await tester.pumpWidget(appWith(MemorySettingsStore('test-key'), client: client));
+    await tester.pumpWidget(
+      appWith(MemorySettingsStore('test-key'), client: client),
+    );
     await tester.pumpAndSettle();
     final initial = weatherRequests;
     expect(initial, cityCatalog.length);

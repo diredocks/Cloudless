@@ -1,8 +1,5 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-
 import '../models/weather.dart';
+import 'api_client.dart';
 import 'skycons.dart';
 
 /// Categories of failure the UI can translate on its own. The [detail] carries
@@ -35,10 +32,8 @@ class WeatherApiException implements Exception {
 /// Thin client for the Caiyun v2.6 comprehensive weather endpoint.
 ///
 /// Docs: https://docs.caiyunapp.com/weather-api/v2/v2.6/6-weather.html
-class CaiyunApi {
-  CaiyunApi({required this.token, this.language = 'en_US', http.Client? client})
-    : _client = client ?? http.Client(),
-      _ownsClient = client == null;
+class CaiyunApi extends JsonApiClient {
+  CaiyunApi({required this.token, this.language = 'en_US', super.client});
 
   static const String _baseUrl = 'https://api.caiyunapp.com/v2.6';
 
@@ -47,8 +42,17 @@ class CaiyunApi {
   /// Caiyun `lang` value, e.g. `en_US` or `zh_CN`.
   final String language;
 
-  final http.Client _client;
-  final bool _ownsClient;
+  @override
+  WeatherApiException transportFailure() =>
+      const WeatherApiException(WeatherErrorKind.unreachable);
+
+  @override
+  WeatherApiException badStatus(int statusCode) =>
+      WeatherApiException(WeatherErrorKind.badStatus, statusCode: statusCode);
+
+  @override
+  WeatherApiException invalidBody() =>
+      const WeatherApiException(WeatherErrorKind.invalidData);
 
   Future<WeatherBundle> fetch(CityLocation city) async {
     final uri =
@@ -61,26 +65,7 @@ class CaiyunApi {
               },
             );
 
-    final http.Response response;
-    try {
-      response = await _client.get(uri);
-    } on Exception {
-      throw const WeatherApiException(WeatherErrorKind.unreachable);
-    }
-
-    if (response.statusCode != 200) {
-      throw WeatherApiException(
-        WeatherErrorKind.badStatus,
-        statusCode: response.statusCode,
-      );
-    }
-
-    final Object? decoded;
-    try {
-      decoded = jsonDecode(response.body);
-    } on FormatException {
-      throw const WeatherApiException(WeatherErrorKind.invalidData);
-    }
+    final decoded = await getJson(uri);
 
     if (decoded is! Map<String, dynamic> || decoded['status'] != 'ok') {
       final error = decoded is Map ? decoded['error'] : null;
@@ -96,10 +81,6 @@ class CaiyunApi {
     }
 
     return CaiyunMapper.toBundle(city, result);
-  }
-
-  void dispose() {
-    if (_ownsClient) _client.close();
   }
 }
 

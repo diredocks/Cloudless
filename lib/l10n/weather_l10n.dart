@@ -63,6 +63,11 @@ extension WeatherLocalizations on AppLocalizations {
     WeatherErrorKind.serviceError => error.detail ?? errorService,
   };
 
+  /// Display text for any thrown error: localized for [WeatherApiException],
+  /// otherwise the error's own string.
+  String weatherErrorText(Object error) =>
+      error is WeatherApiException ? weatherError(error) : '$error';
+
   String? _apiText(String? value) {
     final text = value?.trim();
     if (text == null || text.isEmpty) return null;

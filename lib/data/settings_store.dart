@@ -87,10 +87,10 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   }
 
   @override
-  Future<void> setCities(List<CityLocation> cities) => _preferences.setStringList(
-    _citiesKey,
-    [for (final city in cities) jsonEncode(city.toJson())],
-  );
+  Future<void> setCities(List<CityLocation> cities) =>
+      _preferences.setStringList(_citiesKey, [
+        for (final city in cities) jsonEncode(city.toJson()),
+      ]);
 
   @override
   String? get selectedCityId {

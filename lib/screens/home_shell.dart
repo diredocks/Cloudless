@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/caiyun_api.dart';
-import '../data/cities.dart';
 import '../data/city_search_api.dart';
 import '../data/settings_store.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
-import '../models/weather.dart';
-import '../theme/weather_palette.dart';
+import '../widgets/app_snack_bar.dart';
+import '../widgets/settings_button.dart';
+import '../widgets/status_screen.dart';
 import '../widgets/weather_bottom_nav.dart';
 import 'search_screen.dart';
 import 'today_screen.dart';
+import 'weather_controller.dart';
 import 'weekly_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -33,180 +34,84 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  late List<CityLocation> _cities;
-  late String _selectedCityId;
-  WeatherTab _tab = WeatherTab.today;
-  final Map<String, WeatherBundle> _bundles = {};
-  bool _loading = true;
-  Object? _error;
+  late final WeatherController _controller;
 
   @override
   void initState() {
     super.initState();
-    final saved = widget.store.cities;
-    _cities = saved.isNotEmpty ? List.of(saved) : List.of(cityCatalog);
-    final savedId = widget.store.selectedCityId;
-    _selectedCityId = _cities.any((c) => c.id == savedId)
-        ? savedId!
-        : _cities.first.id;
-    _loadAll();
+    _controller = WeatherController(api: widget.api, store: widget.store);
+    _controller.load();
   }
 
-  Future<Map<String, WeatherBundle>> _fetchBundles() async {
-    final entries = await Future.wait(
-      _cities.map(
-        (city) async => MapEntry(city.id, await widget.api.fetch(city)),
-      ),
-    );
-    return Map.fromEntries(entries);
-  }
-
-  Future<void> _loadAll() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final bundles = await _fetchBundles();
-      if (!mounted) return;
-      setState(() {
-        _bundles
-          ..clear()
-          ..addAll(bundles);
-        _loading = false;
-      });
-    } on Exception catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = error;
-        _loading = false;
-      });
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   /// Pull-to-refresh: reloads the current cities without blanking the screen,
   /// reporting failures through a SnackBar instead.
   Future<void> _refresh() async {
+    final l10n = AppLocalizations.of(context);
     try {
-      final bundles = await _fetchBundles();
-      if (!mounted) return;
-      setState(() {
-        _bundles
-          ..clear()
-          ..addAll(bundles);
-      });
+      await _controller.refresh();
     } on Exception catch (error) {
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              error is WeatherApiException
-                  ? l10n.weatherError(error)
-                  : '$error',
-            ),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      showAppSnack(context, l10n.weatherErrorText(error));
     }
-  }
-
-  void _selectCity(CityLocation city) {
-    setState(() {
-      _selectedCityId = city.id;
-      _tab = WeatherTab.today;
-    });
-    widget.store.setSelectedCityId(city.id);
-  }
-
-  Future<bool> _addCity(CityLocation city) async {
-    if (_cities.any((c) => c.id == city.id)) {
-      _selectCity(city);
-      return true;
-    }
-
-    final WeatherBundle bundle;
-    try {
-      bundle = await widget.api.fetch(city);
-    } on Exception {
-      return false;
-    }
-    if (!mounted) return false;
-
-    setState(() {
-      _cities = [..._cities, city];
-      _bundles[city.id] = bundle;
-    });
-    await widget.store.setCities(_cities);
-    return true;
-  }
-
-  void _removeCity(CityLocation city) {
-    if (_cities.length <= 1) return;
-    setState(() {
-      _cities = _cities.where((c) => c.id != city.id).toList();
-      _bundles.remove(city.id);
-      if (_selectedCityId == city.id) {
-        _selectedCityId = _cities.first.id;
-      }
-    });
-    widget.store.setCities(_cities);
-    widget.store.setSelectedCityId(_selectedCityId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final error = _error;
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        final l10n = AppLocalizations.of(context);
+        final error = _controller.error;
 
-    final Widget content;
-    if (error != null) {
-      content = _StatusScreen(
-        message: error is WeatherApiException
-            ? l10n.weatherError(error)
-            : '$error',
-        onRetry: _loadAll,
-        onOpenSettings: widget.onOpenSettings,
-      );
-    } else if (_loading) {
-      content = _StatusScreen(
-        message: l10n.loadingWeather,
-        onOpenSettings: widget.onOpenSettings,
-      );
-    } else {
-      content = _buildWeather();
-    }
+        final Widget content;
+        if (error != null) {
+          content = StatusScreen(
+            message: l10n.weatherErrorText(error),
+            onRetry: _controller.load,
+            onOpenSettings: widget.onOpenSettings,
+          );
+        } else if (_controller.loading) {
+          content = StatusScreen(
+            message: l10n.loadingWeather,
+            onOpenSettings: widget.onOpenSettings,
+          );
+        } else {
+          content = _buildWeather();
+        }
 
-    return Scaffold(body: content);
+        return Scaffold(body: content);
+      },
+    );
   }
 
   Widget _buildWeather() {
-    final city = _cities.firstWhere(
-      (c) => c.id == _selectedCityId,
-      orElse: () => _cities.first,
-    );
-    final bundle = _bundles[city.id]!;
+    final controller = _controller;
+    final city = controller.selectedCity;
+    final bundle = controller.bundles[city.id]!;
 
-    final palette = switch (_tab) {
+    final palette = switch (controller.tab) {
       WeatherTab.weekly => bundle.weekly.palette,
       _ => bundle.current.palette,
     };
 
-    final body = switch (_tab) {
+    final body = switch (controller.tab) {
       WeatherTab.today => TodayScreen(weather: bundle.current),
       WeatherTab.weekly => WeeklyScreen(weather: bundle.weekly),
       WeatherTab.search => SearchScreen(
         palette: palette,
-        bundles: _bundles,
-        cities: _cities,
+        bundles: controller.bundles,
+        cities: controller.cities,
         selectedCityId: city.id,
         searchApi: widget.citySearch,
-        onSelected: _selectCity,
-        onAdd: _addCity,
-        onRemove: _removeCity,
+        onSelected: controller.selectCity,
+        onAdd: controller.addCity,
+        onRemove: controller.removeCity,
       ),
     };
 
@@ -227,185 +132,24 @@ class _HomeShellState extends State<HomeShell> {
                       color: palette.background,
                       backgroundColor: palette.foreground,
                       child: KeyedSubtree(
-                        key: ValueKey('${city.id}-$_tab'),
+                        key: ValueKey('${city.id}-${controller.tab}'),
                         child: body,
                       ),
                     ),
                   ),
                   WeatherBottomNav(
                     palette: palette,
-                    currentTab: _tab,
-                    onSelected: (tab) => setState(() => _tab = tab),
+                    currentTab: controller.tab,
+                    onSelected: controller.selectTab,
                   ),
                 ],
               ),
               Positioned(
                 top: 8,
                 right: 12,
-                child: _SettingsButton(
+                child: SettingsButton(
                   palette: palette,
                   onOpenSettings: widget.onOpenSettings,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsButton extends StatefulWidget {
-  const _SettingsButton({required this.palette, required this.onOpenSettings});
-
-  final WeatherPalette palette;
-  final VoidCallback onOpenSettings;
-
-  @override
-  State<_SettingsButton> createState() => _SettingsButtonState();
-}
-
-class _SettingsButtonState extends State<_SettingsButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _offset;
-  late final Animation<double> _opacity;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _offset = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: -6.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: -6.0, end: 6.0), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 6.0, end: -6.0), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: -6.0, end: 6.0), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 6.0, end: 0.0), weight: 1),
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 24),
-    ]).animate(_controller);
-    _opacity = Tween(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.8, 1, curve: Curves.easeIn),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _showSettingsHint() {
-    _controller.forward(from: 0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            final visible = _controller.value > 0;
-            return Opacity(
-              opacity: visible ? _opacity.value : 0,
-              child: Transform.translate(
-                offset: Offset(_offset.value, 0),
-                child: child,
-              ),
-            );
-          },
-          child: Text(
-            l10n.settingsHintSnack,
-            style: TextStyle(color: widget.palette.foreground, fontSize: 16),
-          ),
-        ),
-        const SizedBox(width: 4),
-        InkResponse(
-          radius: 28,
-          onTap: _showSettingsHint,
-          onLongPress: widget.onOpenSettings,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Icon(
-              Icons.settings_outlined,
-              color: widget.palette.foreground,
-              size: 26,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatusScreen extends StatelessWidget {
-  const _StatusScreen({
-    required this.message,
-    required this.onOpenSettings,
-    this.onRetry,
-  });
-
-  final String message;
-  final VoidCallback onOpenSettings;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    const palette = WeatherPalette.sky;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: palette.systemUiOverlayStyle,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
-        color: palette.background,
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (onRetry == null)
-                      CircularProgressIndicator(color: palette.foreground),
-                    const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: palette.text(size: 18, weight: FontWeight.w700),
-                      ),
-                    ),
-                    if (onRetry != null) ...[
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: onRetry,
-                        child: Text(
-                          l10n.tryAgain,
-                          style: palette.text(
-                            size: 16,
-                            weight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 12,
-                child: _SettingsButton(
-                  palette: palette,
-                  onOpenSettings: onOpenSettings,
                 ),
               ),
             ],

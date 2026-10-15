@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/weather_palette.dart';
+import 'hairline_row.dart';
 
 class MetricRow extends StatelessWidget {
   const MetricRow({
@@ -20,16 +21,9 @@ class MetricRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: showTopBorder ? palette.hairline : Colors.transparent,
-            width: 1,
-          ),
-        ),
-      ),
+    return HairlineRow(
+      palette: palette,
+      showTopBorder: showTopBorder,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

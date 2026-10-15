@@ -7,7 +7,10 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
+import '../widgets/app_snack_bar.dart';
+import '../widgets/hairline_row.dart';
 import '../widgets/temperature_label.dart';
+import '../widgets/weather_page.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({
@@ -59,8 +62,7 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  bool _isSaved(CityLocation city) =>
-      widget.cities.any((c) => c.id == city.id);
+  bool _isSaved(CityLocation city) => widget.cities.any((c) => c.id == city.id);
 
   void _onQueryChanged(String value) {
     setState(() => _query = value);
@@ -102,18 +104,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
-
   Future<void> _add(CityLocation city) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _addingId = city.id);
@@ -134,14 +124,14 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     } else {
       setState(() => _addingId = null);
-      _showSnack(l10n.cityAddFailed);
+      showAppSnack(context, l10n.cityAddFailed);
     }
   }
 
   Future<void> _confirmRemove(CityLocation city) async {
     final l10n = AppLocalizations.of(context);
     if (widget.cities.length <= 1) {
-      _showSnack(l10n.keepOneCity);
+      showAppSnack(context, l10n.keepOneCity);
       return;
     }
     final confirmed = await showDialog<bool>(
@@ -179,31 +169,17 @@ class _SearchScreenState extends State<SearchScreen> {
     final palette = widget.palette;
     final query = _query.trim();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: constraints.maxHeight * 0.10),
-                  _searchField(l10n, palette),
-                  const SizedBox(height: 20),
-                  if (query.isEmpty)
-                    ..._savedRows(palette)
-                  else
-                    ..._resultRows(l10n, palette),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+    return WeatherPage(
+      children: (maxHeight) => [
+        SizedBox(height: maxHeight * 0.10),
+        _searchField(l10n, palette),
+        const SizedBox(height: 20),
+        if (query.isEmpty)
+          ..._savedRows(palette)
+        else
+          ..._resultRows(l10n, palette),
+        const SizedBox(height: 8),
+      ],
     );
   }
 
@@ -238,8 +214,7 @@ class _SearchScreenState extends State<SearchScreen> {
       for (var i = 0; i < widget.cities.length; i++)
         _CityRow(
           city: widget.cities[i],
-          temperature:
-              widget.bundles[widget.cities[i].id]?.current.temperature,
+          temperature: widget.bundles[widget.cities[i].id]?.current.temperature,
           palette: palette,
           selected: widget.cities[i].id == widget.selectedCityId,
           showTopBorder: i != 0,
@@ -332,16 +307,10 @@ class _CityRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
-      child: Container(
+      child: HairlineRow(
+        palette: palette,
+        showTopBorder: showTopBorder,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: showTopBorder ? palette.hairline : Colors.transparent,
-              width: 1,
-            ),
-          ),
-        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

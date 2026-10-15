@@ -4,7 +4,9 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
+import '../widgets/hairline_row.dart';
 import '../widgets/temperature_label.dart';
+import '../widgets/weather_page.dart';
 
 class WeeklyScreen extends StatelessWidget {
   const WeeklyScreen({super.key, required this.weather});
@@ -15,50 +17,36 @@ class WeeklyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = weather.palette;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: constraints.maxHeight * 0.12),
-                  Text(
-                    l10n.cityName(weather.city),
-                    style: palette.text(
-                      size: 26,
-                      weight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.weeklyForecastSummary(weather.dominantSkycon),
-                    style: palette.text(
-                      size: 44,
-                      weight: FontWeight.w800,
-                      height: 1.05,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  for (var i = 0; i < weather.days.length; i++)
-                    _WeekRow(
-                      forecast: weather.days[i],
-                      palette: palette,
-                      showTopBorder: i == 0,
-                    ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
+    return WeatherPage(
+      children: (maxHeight) => [
+        SizedBox(height: maxHeight * 0.12),
+        Text(
+          l10n.cityName(weather.city),
+          style: palette.text(
+            size: 26,
+            weight: FontWeight.w900,
+            letterSpacing: -0.5,
           ),
-        );
-      },
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.weeklyForecastSummary(weather.dominantSkycon),
+          style: palette.text(
+            size: 44,
+            weight: FontWeight.w800,
+            height: 1.05,
+            letterSpacing: -1,
+          ),
+        ),
+        const SizedBox(height: 40),
+        for (var i = 0; i < weather.days.length; i++)
+          _WeekRow(
+            forecast: weather.days[i],
+            palette: palette,
+            showTopBorder: i == 0,
+          ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }
@@ -77,16 +65,9 @@ class _WeekRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: showTopBorder ? palette.hairline : Colors.transparent,
-            width: 1,
-          ),
-        ),
-      ),
+    return HairlineRow(
+      palette: palette,
+      showTopBorder: showTopBorder,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

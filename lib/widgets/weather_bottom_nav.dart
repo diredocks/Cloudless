@@ -31,10 +31,7 @@ class WeatherBottomNav extends StatelessWidget {
       padding: EdgeInsets.only(top: 10, bottom: bottomInset > 0 ? 0 : 8),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
-          ),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
         ),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
