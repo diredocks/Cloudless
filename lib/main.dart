@@ -10,6 +10,7 @@ import 'l10n/app_localizations.dart';
 import 'providers/api.dart';
 import 'providers/dependencies.dart';
 import 'providers/settings.dart';
+import 'providers/weather.dart';
 import 'screens/home_shell.dart';
 import 'screens/settings_screen.dart';
 import 'theme/app_theme.dart';
@@ -102,9 +103,29 @@ class _CloudlessAppViewState extends ConsumerState<_CloudlessAppView>
         ),
         themeMode: ThemeMode.system,
         home: hasApiKey
-            ? const HomeShell()
+            ? const _EagerInitialization(child: HomeShell())
             : const SettingsScreen(isFirstRun: true),
       ),
     );
+  }
+}
+
+/// Fetches every saved city up front so the app behaves eagerly, like a
+/// pre-loaded forecast.
+///
+/// Watching each city's bundle in a consumer placed high in the tree triggers
+/// the requests and keeps the providers alive. It deliberately returns [child]
+/// unchanged so that bundle updates only rebuild this shell, not the app.
+class _EagerInitialization extends ConsumerWidget {
+  const _EagerInitialization({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    for (final city in ref.watch(appCitiesProvider)) {
+      ref.watch(weatherBundleProvider(city));
+    }
+    return child;
   }
 }

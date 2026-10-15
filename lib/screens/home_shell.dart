@@ -45,13 +45,18 @@ class _WeatherView extends ConsumerWidget {
   final CityLocation city;
   final WeatherBundle bundle;
 
-  /// Pull-to-refresh: reloads the current city without blanking the screen,
+  /// Pull-to-refresh: reloads every saved city without blanking the screen,
   /// reporting failures through a SnackBar instead.
   Future<void> _refresh(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
+    final cities = ref.read(appCitiesProvider);
     try {
-      ref.invalidate(weatherBundleProvider(city));
-      await ref.read(weatherBundleProvider(city).future);
+      for (final city in cities) {
+        ref.invalidate(weatherBundleProvider(city));
+      }
+      await Future.wait([
+        for (final city in cities) ref.read(weatherBundleProvider(city).future),
+      ]);
     } on Exception catch (error) {
       if (!context.mounted) return;
       showAppSnack(context, l10n.weatherErrorText(error));
