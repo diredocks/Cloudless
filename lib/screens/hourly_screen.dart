@@ -4,7 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/forecasts.dart';
 import '../theme/weather_palette.dart';
-import '../widgets/hairline_row.dart';
+import '../widgets/forecast_row.dart';
 import '../widgets/temperature_label.dart';
 import '../widgets/weather_page.dart';
 
@@ -32,11 +32,18 @@ class HourlyScreen extends StatelessWidget {
         rows.add(_DayDivider(palette: palette));
       }
       rows.add(
-        _HourRow(
-          forecast: hour,
+        ForecastRow(
+          title: l10n.hourLabel(hour.datetime, use24Hour: use24Hour),
+          subtitle: l10n.skyconLabel(hour.skycon),
           palette: palette,
-          use24Hour: use24Hour,
           showTopBorder: i == 0,
+          trailing: TemperatureLabel(
+            value: hour.temperature,
+            color: palette.foreground,
+            fontSize: 46,
+            degreeScale: 32 / 46,
+            letterSpacing: -2,
+          ),
         ),
       );
     }
@@ -86,66 +93,6 @@ class _DayDivider extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Divider(height: 1, thickness: 1, color: palette.hairline),
-    );
-  }
-}
-
-class _HourRow extends StatelessWidget {
-  const _HourRow({
-    required this.forecast,
-    required this.palette,
-    required this.use24Hour,
-    required this.showTopBorder,
-  });
-
-  final HourlyForecast forecast;
-  final WeatherPalette palette;
-  final bool use24Hour;
-  final bool showTopBorder;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return HairlineRow(
-      palette: palette,
-      showTopBorder: showTopBorder,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.hourLabel(forecast.datetime, use24Hour: use24Hour),
-                  style: palette.text(
-                    size: 22,
-                    weight: FontWeight.w600,
-                    height: 1.1,
-                  ),
-                ),
-                Text(
-                  l10n.skyconLabel(forecast.skycon),
-                  style: palette.text(
-                    size: 30,
-                    weight: FontWeight.w900,
-                    height: 1.15,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TemperatureLabel(
-            value: forecast.temperature,
-            color: palette.foreground,
-            fontSize: 46,
-            degreeScale: 32 / 46,
-            letterSpacing: -2,
-          ),
-        ],
-      ),
     );
   }
 }
