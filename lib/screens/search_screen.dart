@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
+import '../models/weather_tab.dart';
 import '../providers/city_search.dart';
-import '../providers/weather_controller.dart';
+import '../providers/settings.dart';
+import '../providers/weather.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/hairline_row.dart';
@@ -35,6 +37,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   bool _isSaved(List<CityLocation> cities, CityLocation city) =>
       cities.any((c) => c.id == city.id);
 
+  /// Temperature for [city] when it is already saved (and therefore fetched),
+  /// otherwise null.
+  int? _temperature(List<CityLocation> cities, CityLocation city) {
+    if (!_isSaved(cities, city)) return null;
+    return ref.watch(weatherBundleProvider(city)).value?.current.temperature;
+  }
+
   void _onQueryChanged(String value) {
     setState(() => _query = value);
   }
@@ -42,7 +51,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Future<void> _add(CityLocation city) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _addingId = city.id);
-    final ok = await ref.read(weatherControllerProvider.notifier).addCity(city);
+
+    // Validate by fetching the city's weather before saving it.
+    var ok = true;
+    try {
+      await ref.read(weatherBundleProvider(city).future);
+    } on Exception {
+      ok = false;
+    }
     if (!mounted) return;
 
     if (!ok) {
@@ -50,6 +66,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       showAppSnack(context, l10n.cityAddFailed);
       return;
     }
+
+    await ref.read(settingsProvider.notifier).addCity(city);
+    if (!mounted) return;
 
     // Reset the search so the newly saved city shows in the list.
     _controller.clear();
@@ -59,12 +78,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
-  Future<void> _confirmRemove(
-    List<CityLocation> cities,
-    CityLocation city,
-  ) async {
+  Future<void> _confirmRemove(CityLocation city, int cityCount) async {
     final l10n = AppLocalizations.of(context);
-    if (cities.length <= 1) {
+    if (cityCount <= 1) {
       showAppSnack(context, l10n.keepOneCity);
       return;
     }
@@ -86,7 +102,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
-    await ref.read(weatherControllerProvider.notifier).removeCity(city);
+    await ref.read(settingsProvider.notifier).removeCity(city);
   }
 
   void _openCity(List<CityLocation> cities, CityLocation city) {
@@ -94,17 +110,23 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _add(city);
       return;
     }
-    ref.read(weatherControllerProvider.notifier).selectCity(city);
+    _selectCity(city);
+  }
+
+  /// Selects [city] and returns to today, matching the picker flow.
+  void _selectCity(CityLocation city) {
+    ref.read(settingsProvider.notifier).selectCity(city);
+    ref.read(weatherTabProvider.notifier).select(WeatherTab.today);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = widget.palette;
-    final session = ref.watch(weatherControllerProvider).value;
-    final cities = session?.cities ?? const <CityLocation>[];
-    final bundles = session?.bundles ?? const <String, WeatherBundle>{};
-    final selectedCityId = session?.selectedId;
+    final cities = ref.watch(appCitiesProvider);
+    final selectedCityId = ref.watch(
+      settingsProvider.select((settings) => settings.selectedCityId),
+    );
     final query = _query.trim();
     final results = ref.watch(citySearchResultsProvider(_query));
 
@@ -115,16 +137,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         _searchField(l10n, palette),
         const SizedBox(height: 20),
         if (query.isEmpty)
-          ..._savedRows(palette, cities, bundles, selectedCityId)
+          ..._savedRows(palette, cities, selectedCityId)
         else
-          ..._resultRows(
-            l10n,
-            palette,
-            cities,
-            bundles,
-            selectedCityId,
-            results,
-          ),
+          ..._resultRows(l10n, palette, cities, selectedCityId, results),
         const SizedBox(height: 8),
       ],
     );
@@ -159,21 +174,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   List<Widget> _savedRows(
     WeatherPalette palette,
     List<CityLocation> cities,
-    Map<String, WeatherBundle> bundles,
     String? selectedCityId,
   ) {
     return [
       for (var i = 0; i < cities.length; i++)
         _CityRow(
           city: cities[i],
-          temperature: bundles[cities[i].id]?.current.temperature,
+          temperature: _temperature(cities, cities[i]),
           palette: palette,
           selected: cities[i].id == selectedCityId,
           showTopBorder: i != 0,
-          onTap: () => ref
-              .read(weatherControllerProvider.notifier)
-              .selectCity(cities[i]),
-          onLongPress: () => _confirmRemove(cities, cities[i]),
+          onTap: () => _selectCity(cities[i]),
+          onLongPress: () => _confirmRemove(cities[i], cities.length),
         ),
     ];
   }
@@ -182,7 +194,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     AppLocalizations l10n,
     WeatherPalette palette,
     List<CityLocation> cities,
-    Map<String, WeatherBundle> bundles,
     String? selectedCityId,
     AsyncValue<List<CityLocation>> results,
   ) {
@@ -200,7 +211,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       for (var i = 0; i < matches.length; i++)
         _CityRow(
           city: matches[i],
-          temperature: bundles[matches[i].id]?.current.temperature,
+          temperature: _temperature(cities, matches[i]),
           palette: palette,
           selected: matches[i].id == selectedCityId,
           showTopBorder: i != 0,

@@ -8,7 +8,8 @@ import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../models/settings.dart';
-import '../providers/services.dart';
+import '../providers/dependencies.dart';
+import '../providers/settings.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {

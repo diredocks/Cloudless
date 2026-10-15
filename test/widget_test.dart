@@ -359,7 +359,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     final initial = weatherRequests;
-    expect(initial, cityCatalog.length);
+    // Only the selected city is fetched up front; the rest load lazily.
+    expect(initial, 1);
 
     await tester.fling(find.text('北京'), const Offset(0, 300), 1000);
     await tester.pumpAndSettle();

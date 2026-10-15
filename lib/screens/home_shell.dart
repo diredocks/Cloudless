@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
+import '../models/weather.dart';
 import '../models/weather_tab.dart';
-import '../providers/services.dart';
-import '../providers/weather_controller.dart';
+import '../providers/settings.dart';
+import '../providers/weather.dart';
 import '../widgets/app_snack_bar.dart';
 import '../widgets/status_screen.dart';
 import '../widgets/weather_bottom_nav.dart';
@@ -21,32 +22,36 @@ class HomeShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final city = ref.watch(selectedCityProvider);
+
     return Scaffold(
       body: ref
-          .watch(weatherControllerProvider)
+          .watch(weatherBundleProvider(city))
           .when(
             loading: () => StatusScreen(message: l10n.loadingWeather),
             error: (error, _) => StatusScreen(
               message: l10n.weatherErrorText(error),
-              onRetry: () => ref.invalidate(weatherControllerProvider),
+              onRetry: () => ref.invalidate(weatherBundleProvider(city)),
             ),
-            data: (session) => _WeatherView(session: session),
+            data: (bundle) => _WeatherView(city: city, bundle: bundle),
           ),
     );
   }
 }
 
 class _WeatherView extends ConsumerWidget {
-  const _WeatherView({required this.session});
+  const _WeatherView({required this.city, required this.bundle});
 
-  final WeatherState session;
+  final CityLocation city;
+  final WeatherBundle bundle;
 
-  /// Pull-to-refresh: reloads the current cities without blanking the screen,
+  /// Pull-to-refresh: reloads the current city without blanking the screen,
   /// reporting failures through a SnackBar instead.
   Future<void> _refresh(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
     try {
-      await ref.read(weatherControllerProvider.notifier).refresh();
+      ref.invalidate(weatherBundleProvider(city));
+      await ref.read(weatherBundleProvider(city).future);
     } on Exception catch (error) {
       if (!context.mounted) return;
       showAppSnack(context, l10n.weatherErrorText(error));
@@ -55,19 +60,18 @@ class _WeatherView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tab = ref.watch(weatherTabProvider);
     final use24Hour = ref.watch(
       settingsProvider.select((settings) => settings.use24Hour),
     );
-    final city = session.selectedCity;
-    final bundle = session.bundles[city.id]!;
 
-    final palette = switch (session.tab) {
+    final palette = switch (tab) {
       WeatherTab.weekly => bundle.weekly.palette,
       WeatherTab.hourly => bundle.hourly.palette,
       _ => bundle.current.palette,
     };
 
-    final body = switch (session.tab) {
+    final body = switch (tab) {
       WeatherTab.today => TodayScreen(weather: bundle.current),
       WeatherTab.weekly => WeeklyScreen(weather: bundle.weekly),
       WeatherTab.hourly => HourlyScreen(
@@ -92,16 +96,16 @@ class _WeatherView extends ConsumerWidget {
                   color: palette.background,
                   backgroundColor: palette.foreground,
                   child: KeyedSubtree(
-                    key: ValueKey('${city.id}-${session.tab}'),
+                    key: ValueKey('${city.id}-$tab'),
                     child: body,
                   ),
                 ),
               ),
               WeatherBottomNav(
                 palette: palette,
-                currentTab: session.tab,
+                currentTab: tab,
                 onSelected: (tab) =>
-                    ref.read(weatherControllerProvider.notifier).selectTab(tab),
+                    ref.read(weatherTabProvider.notifier).select(tab),
               ),
             ],
           ),

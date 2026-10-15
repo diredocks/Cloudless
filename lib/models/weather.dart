@@ -137,6 +137,14 @@ class CityLocation {
     'longitude': longitude,
     'latitude': latitude,
   };
+
+  /// Identity is the city [id]: the catalog and the search API can report the
+  /// same city with slightly different coordinates or labels.
+  @override
+  bool operator ==(Object other) => other is CityLocation && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 class WeatherBundle {
