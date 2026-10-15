@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/cities.dart';
 import '../models/city.dart';
 import 'settings.dart';
 

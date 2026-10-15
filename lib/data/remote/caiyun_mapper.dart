@@ -1,7 +1,7 @@
 import '../../models/city.dart';
 import '../../models/current_weather.dart';
 import '../../models/forecasts.dart';
-import '../../models/skycon_catalog.dart';
+import '../../models/skycon.dart';
 import '../../models/weather_bundle.dart';
 
 /// Translates a Caiyun `result` payload into the app's display models.

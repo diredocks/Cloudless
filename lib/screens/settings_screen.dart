@@ -7,7 +7,7 @@ import '../data/remote/weather_api_exception.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
-import '../models/cities.dart';
+import '../models/city.dart';
 import '../models/settings.dart';
 import '../providers/dependencies.dart';
 import '../providers/settings.dart';

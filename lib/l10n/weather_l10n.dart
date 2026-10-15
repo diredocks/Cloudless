@@ -1,7 +1,7 @@
 import '../data/remote/weather_api_exception.dart';
 import '../models/city.dart';
 import '../models/current_weather.dart';
-import '../models/skycon_catalog.dart';
+import '../models/skycon.dart';
 import 'app_localizations.dart';
 
 /// Localized presentation helpers for the language-neutral weather models.

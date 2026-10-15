@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_language.dart';
-import '../models/cities.dart';
 import '../models/city.dart';
 import '../models/settings.dart';
 import 'dependencies.dart';

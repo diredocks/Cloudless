@@ -1,5 +1,4 @@
 import 'package:cloudless_app/data/local/settings_store.dart';
-import 'package:cloudless_app/models/cities.dart';
 import 'package:cloudless_app/models/city.dart';
 import 'package:cloudless_app/models/settings.dart';
 
