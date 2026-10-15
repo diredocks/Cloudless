@@ -5,6 +5,7 @@ import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/hairline_row.dart';
+import '../widgets/settings_button.dart';
 import '../widgets/temperature_label.dart';
 import '../widgets/weather_page.dart';
 
@@ -13,12 +14,15 @@ class HourlyScreen extends StatelessWidget {
     super.key,
     required this.weather,
     required this.use24Hour,
+    required this.onOpenSettings,
   });
 
   final HourlyWeather weather;
 
   /// Whether hourly labels use a 24-hour clock.
   final bool use24Hour;
+
+  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +47,11 @@ class HourlyScreen extends StatelessWidget {
 
     return WeatherPage(
       children: (maxHeight) => [
-        SizedBox(height: maxHeight * 0.12),
+        SettingsPageGap(
+          height: maxHeight * 0.12,
+          palette: palette,
+          onOpenSettings: onOpenSettings,
+        ),
         Text(
           l10n.cityName(weather.city),
           style: palette.text(

@@ -3,6 +3,44 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/weather_palette.dart';
 
+/// A settings button docked in a weather page's top gap.
+///
+/// It lives inside the page's scroll view, so it scrolls away with the
+/// forecast instead of staying pinned to the screen.
+class SettingsPageGap extends StatelessWidget {
+  const SettingsPageGap({
+    super.key,
+    required this.height,
+    required this.palette,
+    required this.onOpenSettings,
+  });
+
+  /// Height of the empty gap the button sits at the top of.
+  final double height;
+
+  final WeatherPalette palette;
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 8,
+            right: 0,
+            child: SettingsButton(
+              palette: palette,
+              onOpenSettings: onOpenSettings,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// The settings entry point shown over every weather screen.
 ///
 /// Tapping it briefly reveals the "long press" hint; a long press opens the

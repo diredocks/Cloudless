@@ -5,13 +5,19 @@ import '../l10n/weather_l10n.dart';
 import '../models/weather.dart';
 import '../theme/weather_palette.dart';
 import '../widgets/hairline_row.dart';
+import '../widgets/settings_button.dart';
 import '../widgets/temperature_label.dart';
 import '../widgets/weather_page.dart';
 
 class WeeklyScreen extends StatelessWidget {
-  const WeeklyScreen({super.key, required this.weather});
+  const WeeklyScreen({
+    super.key,
+    required this.weather,
+    required this.onOpenSettings,
+  });
 
   final WeeklyWeather weather;
+  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +25,11 @@ class WeeklyScreen extends StatelessWidget {
     final palette = weather.palette;
     return WeatherPage(
       children: (maxHeight) => [
-        SizedBox(height: maxHeight * 0.12),
+        SettingsPageGap(
+          height: maxHeight * 0.12,
+          palette: palette,
+          onOpenSettings: onOpenSettings,
+        ),
         Text(
           l10n.cityName(weather.city),
           style: palette.text(

@@ -7,7 +7,6 @@ import '../data/settings_store.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/weather_l10n.dart';
 import '../widgets/app_snack_bar.dart';
-import '../widgets/settings_button.dart';
 import '../widgets/status_screen.dart';
 import '../widgets/weather_bottom_nav.dart';
 import 'hourly_screen.dart';
@@ -107,11 +106,18 @@ class _HomeShellState extends State<HomeShell> {
     };
 
     final body = switch (controller.tab) {
-      WeatherTab.today => TodayScreen(weather: bundle.current),
-      WeatherTab.weekly => WeeklyScreen(weather: bundle.weekly),
+      WeatherTab.today => TodayScreen(
+        weather: bundle.current,
+        onOpenSettings: widget.onOpenSettings,
+      ),
+      WeatherTab.weekly => WeeklyScreen(
+        weather: bundle.weekly,
+        onOpenSettings: widget.onOpenSettings,
+      ),
       WeatherTab.hourly => HourlyScreen(
         weather: bundle.hourly,
         use24Hour: widget.use24Hour,
+        onOpenSettings: widget.onOpenSettings,
       ),
       WeatherTab.search => SearchScreen(
         palette: palette,
@@ -122,6 +128,7 @@ class _HomeShellState extends State<HomeShell> {
         onSelected: controller.selectCity,
         onAdd: controller.addCity,
         onRemove: controller.removeCity,
+        onOpenSettings: widget.onOpenSettings,
       ),
     };
 
@@ -132,35 +139,23 @@ class _HomeShellState extends State<HomeShell> {
         color: palette.background,
         child: SafeArea(
           bottom: false,
-          child: Stack(
+          child: Column(
             children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: _refresh,
-                      color: palette.background,
-                      backgroundColor: palette.foreground,
-                      child: KeyedSubtree(
-                        key: ValueKey('${city.id}-${controller.tab}'),
-                        child: body,
-                      ),
-                    ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _refresh,
+                  color: palette.background,
+                  backgroundColor: palette.foreground,
+                  child: KeyedSubtree(
+                    key: ValueKey('${city.id}-${controller.tab}'),
+                    child: body,
                   ),
-                  WeatherBottomNav(
-                    palette: palette,
-                    currentTab: controller.tab,
-                    onSelected: controller.selectTab,
-                  ),
-                ],
-              ),
-              Positioned(
-                top: 8,
-                right: 12,
-                child: SettingsButton(
-                  palette: palette,
-                  onOpenSettings: widget.onOpenSettings,
                 ),
+              ),
+              WeatherBottomNav(
+                palette: palette,
+                currentTab: controller.tab,
+                onSelected: controller.selectTab,
               ),
             ],
           ),

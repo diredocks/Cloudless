@@ -31,45 +31,49 @@ class StatusScreen extends StatelessWidget {
         duration: const Duration(milliseconds: 350),
         color: palette.background,
         child: SafeArea(
-          child: Stack(
+          child: Column(
             children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (onRetry == null)
-                      CircularProgressIndicator(color: palette.foreground),
-                    const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: palette.text(size: 18, weight: FontWeight.w700),
-                      ),
-                    ),
-                    if (onRetry != null) ...[
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: onRetry,
-                        child: Text(
-                          l10n.tryAgain,
-                          style: palette.text(
-                            size: 16,
-                            weight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+              Padding(
+                padding: const EdgeInsets.only(top: 8, right: 12),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SettingsButton(
+                    palette: palette,
+                    onOpenSettings: onOpenSettings,
+                  ),
                 ),
               ),
-              Positioned(
-                top: 8,
-                right: 12,
-                child: SettingsButton(
-                  palette: palette,
-                  onOpenSettings: onOpenSettings,
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (onRetry == null)
+                        CircularProgressIndicator(color: palette.foreground),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: palette.text(size: 18, weight: FontWeight.w700),
+                        ),
+                      ),
+                      if (onRetry != null) ...[
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: onRetry,
+                          child: Text(
+                            l10n.tryAgain,
+                            style: palette.text(
+                              size: 16,
+                              weight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
