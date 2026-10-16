@@ -15,23 +15,21 @@ class WeatherPage extends StatelessWidget {
   const WeatherPage({
     super.key,
     required this.children,
+    required this.palette,
     this.intrinsicHeight = false,
     this.topGap,
-    this.palette,
-  }) : assert(
-         topGap == null || palette != null,
-         'A palette is required to render the top settings gap.',
-       );
+  });
 
   final List<Widget> Function(double maxHeight) children;
   final bool intrinsicHeight;
 
-  /// Fraction of the viewport height reserved above the content for the
-  /// settings button. When set, [palette] must also be provided.
-  final double? topGap;
+  /// Palette used to color the settings button in the top gap.
+  final WeatherPalette palette;
 
-  /// Palette used by the settings button in the top gap.
-  final WeatherPalette? palette;
+  /// Fraction of the viewport height reserved above the content for the
+  /// settings button. When null, no gap (and therefore no settings button) is
+  /// drawn.
+  final double? topGap;
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +54,7 @@ class WeatherPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (gap != null)
-            SettingsPageGap(
-              height: maxHeight * gap,
-              color: palette!.foreground,
-            ),
+            SettingsPageGap(height: maxHeight * gap, color: palette.foreground),
           ...children(maxHeight),
         ],
       ),
