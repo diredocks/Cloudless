@@ -10,17 +10,6 @@ class Settings {
 
   /// Whether hourly forecast times use a 24-hour clock; false means am/pm.
   final bool use24Hour;
-
-  /// Returns a copy with the given fields replaced.
-  ///
-  /// The nullable fields keep their current value when omitted; construct a
-  /// [Settings] directly to reset one to null.
-  Settings copyWith({String? apiKey, String? languageCode, bool? use24Hour}) =>
-      Settings(
-        apiKey: apiKey ?? this.apiKey,
-        languageCode: languageCode ?? this.languageCode,
-        use24Hour: use24Hour ?? this.use24Hour,
-      );
 }
 
 /// The fields edited on the settings screen, held separately from the
