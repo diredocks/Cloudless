@@ -11,7 +11,6 @@ import '../models/city.dart';
 import '../models/settings.dart';
 import '../providers/dependencies.dart';
 import '../providers/settings.dart';
-import '../providers/settings_form.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {

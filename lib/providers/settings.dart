@@ -36,3 +36,24 @@ final appLanguageProvider = Provider<AppLanguage>((ref) {
   if (override != null) return override;
   return resolveAppLanguage(WidgetsBinding.instance.platformDispatcher.locale);
 });
+
+/// The [SettingsDraft] edited on the settings screen. Seeded from the persisted
+/// settings each time the screen mounts and discarded when it closes.
+final settingsFormProvider =
+    NotifierProvider.autoDispose<SettingsFormNotifier, SettingsDraft>(
+      SettingsFormNotifier.new,
+    );
+
+class SettingsFormNotifier extends Notifier<SettingsDraft> {
+  @override
+  SettingsDraft build() => SettingsDraft.from(ref.watch(settingsProvider));
+
+  /// Sets the API key being edited.
+  void setApiKey(String key) => state = state.withApiKey(key);
+
+  /// Sets the preferred language, or null to follow the system.
+  void setLanguage(String? code) => state = state.withLanguage(code);
+
+  /// Sets whether hourly times use a 24-hour clock.
+  void setUse24Hour(bool value) => state = state.withUse24Hour(value);
+}
